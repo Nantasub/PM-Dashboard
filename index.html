@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบริหารจัดการ Preventive Maintenance</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Thai font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+        .page { display: none; animation: fadeIn 0.5s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50; opacity: 0; visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.9); transition: transform 0.3s; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+        .machine-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .machine-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .pm-plan-table .pm-due {
+            background-color: #3b82f6; color: white; border-radius: 9999px;
+            width: 1.75rem; height: 1.75rem; display: inline-flex;
+            align-items: center; justify-content: center; font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white shadow-md flex flex-col">
+            <div class="p-6 border-b">
+                <h1 class="text-2xl font-bold text-blue-600"><i class="fas fa-building mr-2"></i>PM System</h1>
+                <p class="text-sm text-gray-500">อาคารตัวอย่าง</p>
+            </div>
+            <nav class="flex-1 mt-4">
+                <a href="#overall-dashboard" class="nav-link active flex items-center py-3 px-6 text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                    <i class="fas fa-chart-pie w-6 text-center"></i><span class="ml-4">ภาพรวมระบบ</span>
+                </a>
+                <a href="#machine-selector" class="nav-link flex items-center py-3 px-6 text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                    <i class="fas fa-th-large w-6 text-center"></i><span class="ml-4">แดชบอร์ดเครื่องจักร</span>
+                </a>
+            </nav>
+            <div class="p-6 border-t">
+                <p class="text-xs text-gray-400">© 2025 Building PM System</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <!-- Overall Dashboard Page -->
+            <div id="overall-dashboard" class="page active">
+                 <h2 class="text-3xl font-bold mb-6">ภาพรวมระบบ</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm flex items-center justify-between">
+                        <div><p class="text-gray-500 text-sm">เครื่องจักรทั้งหมด</p><p id="total-machines" class="text-3xl font-bold">0</p></div>
+                        <i class="fas fa-cogs fa-3x text-blue-200"></i>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm flex items-center justify-between">
+                        <div><p class="text-gray-500 text-sm">PM ในเดือนนี้</p><p id="upcoming-pm" class="text-3xl font-bold text-yellow-500">0</p></div>
+                        <i class="fas fa-clock fa-3x text-yellow-200"></i>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm flex items-center justify-between">
+                        <div><p class="text-gray-500 text-sm">PM เลยกำหนด</p><p id="overdue-pm" class="text-3xl font-bold text-red-500">0</p></div>
+                        <i class="fas fa-exclamation-triangle fa-3x text-red-200"></i>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm flex items-center justify-between">
+                        <div><p class="text-gray-500 text-sm">ค่าใช้จ่ายเดือนนี้</p><p id="cost-this-month" class="text-3xl font-bold text-green-500">0</p></div>
+                        <i class="fas fa-coins fa-3x text-green-200"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">PM ในเดือนนี้/เลยกำหนด</h3>
+                        <div id="upcoming-pm-list" class="space-y-3"></div>
+                    </div>
+                     <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">สรุปค่าใช้จ่ายรายเดือน (ปี <span id="current-year-chart"></span>)</h3>
+                        <div id="monthly-cost-chart" class="w-full h-64 flex items-end justify-around space-x-2"></div>
+                    </div>
+                </div>
+                 <div class="mt-6 bg-white p-6 rounded-lg shadow-sm">
+                    <h3 class="text-xl font-bold mb-4">แผน PM ประจำปี <span id="current-year-plan"></span></h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse pm-plan-table">
+                            <thead><tr class="bg-gray-50"><th class="py-2 px-4 border">เครื่องจักร</th><th class="py-2 px-2 border text-center">ม.ค.</th><th class="py-2 px-2 border text-center">ก.พ.</th><th class="py-2 px-2 border text-center">มี.ค.</th><th class="py-2 px-2 border text-center">เม.ย.</th><th class="py-2 px-2 border text-center">พ.ค.</th><th class="py-2 px-2 border text-center">มิ.ย.</th><th class="py-2 px-2 border text-center">ก.ค.</th><th class="py-2 px-2 border text-center">ส.ค.</th><th class="py-2 px-2 border text-center">ก.ย.</th><th class="py-2 px-2 border text-center">ต.ค.</th><th class="py-2 px-2 border text-center">พ.ย.</th><th class="py-2 px-2 border text-center">ธ.ค.</th></tr></thead>
+                            <tbody id="pm-plan-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Machine Selector Page -->
+            <div id="machine-selector" class="page">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold">แดชบอร์ดเครื่องจักร</h2>
+                    <button id="add-machine-btn-dashboard" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"><i class="fas fa-plus mr-2"></i>เพิ่มเครื่องจักร</button>
+                </div>
+                <div id="machine-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </div>
+
+            <!-- Machine Detail Page -->
+            <div id="machine-detail" class="page">
+                <button id="back-to-selector-btn" class="mb-6 text-blue-600 hover:underline"><i class="fas fa-arrow-left mr-2"></i>กลับไปหน้าแดชบอร์ดเครื่องจักร</button>
+                <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+                    <div class="flex justify-between items-center">
+                        <h2 id="detail-machine-name" class="text-3xl font-bold"></h2>
+                        <button id="edit-machine-detail-btn" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit mr-2"></i>แก้ไขข้อมูลเครื่องจักร</button>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm text-gray-600">
+                        <div><strong>ตำแหน่ง:</strong> <span id="detail-machine-location"></span></div><div><strong>ยี่ห้อ:</strong> <span id="detail-machine-brand"></span></div><div><strong>รุ่น:</strong> <span id="detail-machine-model"></span></div><div><strong>Serial:</strong> <span id="detail-machine-serial"></span></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">เครื่องจักรย่อย/อุปกรณ์</h3><button id="add-sub-machine-btn" class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">ชื่อ</th><th class="py-2 px-4">รายละเอียด</th><th class="py-2 px-4"></th></tr></thead><tbody id="sub-machines-table"></tbody></table></div>
+                        <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">ประวัติ Breakdown</h3><button id="add-breakdown-btn" class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่เสีย</th><th class="py-2 px-4">อาการ</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="breakdown-records-table"></tbody></table></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">ประวัติการทำ PM</h3><button id="add-pm-record-btn" class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">ผู้ปฏิบัติงาน</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="pm-records-table"></tbody></table></div>
+                </div>
+                <input type="hidden" id="current-machine-id">
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="machine-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 id="machine-modal-title" class="text-2xl font-bold mb-6"></h3><form id="machine-form"><input type="hidden" id="machine-id"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="text" id="machine-name" required placeholder="ชื่อเครื่องจักร" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-location" required placeholder="ตำแหน่งติดตั้ง" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-brand" required placeholder="ยี่ห้อ" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-model" required placeholder="รุ่น" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-serial" required placeholder="Serial Number" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-size" placeholder="ขนาดเครื่องจักร" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="date" id="machine-purchase-date" required class="w-full border border-gray-300 rounded-md py-2 px-3 text-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="number" id="machine-contract-value" min="0" value="0" placeholder="มูลค่าสัญญา (รายปี)" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="mt-4"><label class="block text-sm font-medium text-gray-700 mb-2">กำหนดเดือนที่ทำ PM</label><div id="pm-months-checkboxes" class="grid grid-cols-4 gap-2"></div></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div></form></div></div>
+    <div id="pm-record-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">บันทึกการทำ PM</h3><form id="pm-record-form"><input type="hidden" id="pm-record-id"><div class="space-y-4"><input type="date" id="pm-date" required class="w-full border border-gray-300 rounded-md py-2 px-3 text-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="pm-technician" required placeholder="ผู้ปฏิบัติงาน" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="number" id="pm-cost" min="0" value="0" placeholder="ค่าใช้จ่าย (บาท)" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><textarea id="pm-details" rows="3" required placeholder="รายละเอียดการทำงาน" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div></form></div></div>
+    <div id="sub-machine-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-md p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">เพิ่ม/แก้ไข เครื่องจักรย่อย</h3><form id="sub-machine-form"><input type="hidden" id="sub-machine-id"><div class="space-y-4"><input type="text" id="sub-machine-name" required placeholder="ชื่ออุปกรณ์" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><textarea id="sub-machine-details" rows="2" placeholder="รายละเอียด (เช่น รุ่น, Serial)" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div></form></div></div>
+    <div id="breakdown-record-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">บันทึก Breakdown</h3><form id="breakdown-record-form"><input type="hidden" id="breakdown-record-id"><div class="space-y-4"><input type="date" id="breakdown-date" required class="w-full border border-gray-300 rounded-md py-2 px-3 text-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><textarea id="breakdown-problem" rows="2" required placeholder="รายละเอียดปัญหา/อาการ" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea><textarea id="breakdown-action" rows="2" required placeholder="การดำเนินการแก้ไข" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea><input type="number" id="breakdown-cost" min="0" value="0" placeholder="ค่าใช้จ่าย (บาท)" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div></form></div></div>
+    <div id="schedule-pm-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-sm p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-2">กำหนดวันที่เข้า PM</h3><p id="schedule-modal-machine-name" class="text-gray-600 mb-6"></p><form id="schedule-pm-form"><input type="hidden" id="schedule-machine-id"><input type="hidden" id="schedule-year"><input type="hidden" id="schedule-month"><div><label for="schedule-pm-date" class="block text-sm font-medium text-gray-700">เลือกวันที่</label><input type="date" id="schedule-pm-date" required class="mt-1 w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึกวันที่</button></div></form></div></div>
+
+    <div id="toast-notification" class="fixed bottom-5 right-5 bg-green-500 text-white py-3 px-5 rounded-lg shadow-lg opacity-0 transition-opacity duration-500"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- STATE MANAGEMENT ---
+            let machines = JSON.parse(localStorage.getItem('machines')) || [
+                { id: 1, name: 'เครื่องกำเนิดไฟฟ้า (Generator)', location: 'ห้องเครื่องจักรกล', brand: 'Cummins', model: 'C300D5', serial: 'GEN-001', size: '3x1.5x2 m', purchaseDate: '2021-02-10', contractValue: 120000 },
+                { id: 2, name: 'เครื่องสำรองไฟ (UPS)', location: 'ห้องเซิร์ฟเวอร์', brand: 'APC', model: 'Galaxy VS', serial: 'UPS-SVR-01', size: '0.8x1x1.8 m', purchaseDate: '2022-08-15', contractValue: 50000 },
+                { id: 3, name: 'ลิฟต์โดยสาร A', location: 'โถงกลางอาคาร', brand: 'Mitsubishi', model: 'NEXIEZ-S', serial: 'ELEV-A-01', size: '15 คน', purchaseDate: '2020-01-20', contractValue: 85000 }
+            ];
+            let subMachines = JSON.parse(localStorage.getItem('subMachines')) || [];
+            let pmRecords = JSON.parse(localStorage.getItem('pmRecords')) || [];
+            let breakdownRecords = JSON.parse(localStorage.getItem('breakdownRecords')) || [];
+            let pmPlan = JSON.parse(localStorage.getItem('pmPlan')) || [
+                { machineId: 1, months: [0, 6] }, { machineId: 2, months: [5, 11] }, { machineId: 3, months: [3, 9] }
+            ];
+            const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+
+            const saveData = () => {
+                localStorage.setItem('machines', JSON.stringify(machines));
+                localStorage.setItem('subMachines', JSON.stringify(subMachines));
+                localStorage.setItem('pmRecords', JSON.stringify(pmRecords));
+                localStorage.setItem('breakdownRecords', JSON.stringify(breakdownRecords));
+                localStorage.setItem('pmPlan', JSON.stringify(pmPlan));
+            };
+            
+            // --- UI & UTILITY FUNCTIONS ---
+            const showPage = (pageId) => {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId)?.classList.add('active');
+                document.querySelectorAll('.nav-link').forEach(l => {
+                    l.classList.toggle('active', l.getAttribute('href') === `#${pageId}`);
+                    l.classList.toggle('bg-blue-50', l.getAttribute('href') === `#${pageId}`);
+                    l.classList.toggle('text-blue-600', l.getAttribute('href') === `#${pageId}`);
+                });
+            };
+
+            const getMachineById = (id) => machines.find(m => m.id === parseInt(id));
+            const openModal = (modalId) => document.getElementById(modalId).classList.add('active');
+            const closeModal = (modalId) => document.getElementById(modalId).classList.remove('active');
+            const showToast = (message) => {
+                const toast = document.getElementById('toast-notification');
+                toast.textContent = message;
+                toast.classList.remove('opacity-0');
+                setTimeout(() => toast.classList.add('opacity-0'), 3000);
+            };
+
+            // --- RENDERING FUNCTIONS ---
+            const renderAll = () => {
+                renderOverallDashboard();
+                renderMachineSelector();
+                saveData();
+            };
+
+            const renderOverallDashboard = () => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const currentYear = today.getFullYear();
+                const currentMonth = today.getMonth();
+
+                let allUpcomingAndOverdue = [];
+
+                machines.forEach(m => {
+                    const plan = pmPlan.find(p => p.machineId === m.id);
+                    if (!plan || plan.months.length === 0) return;
+
+                    plan.months.forEach(month => {
+                        const existingRecordForCycle = pmRecords.find(r =>
+                            r.machineId === m.id &&
+                            new Date(r.pmDate).getFullYear() === currentYear &&
+                            new Date(r.pmDate).getMonth() === month
+                        );
+
+                        if (existingRecordForCycle) {
+                            if (existingRecordForCycle.status === 'scheduled') {
+                                const scheduledDate = new Date(existingRecordForCycle.pmDate);
+                                scheduledDate.setHours(0,0,0,0);
+                                allUpcomingAndOverdue.push({
+                                    machine: m, date: scheduledDate, isUnscheduled: false,
+                                    isOverdue: scheduledDate < today, year: currentYear, month: month
+                                });
+                            }
+                        } else {
+                            const lastDayOfMonth = new Date(currentYear, month + 1, 0);
+                            const firstDayOfMonth = new Date(currentYear, month, 1);
+                             if (month <= currentMonth) { // Only show past or current month plans
+                                allUpcomingAndOverdue.push({
+                                    machine: m, date: firstDayOfMonth, isUnscheduled: true,
+                                    isOverdue: lastDayOfMonth < today, year: currentYear, month: month
+                                });
+                            }
+                        }
+                    });
+                });
+                
+                const displayList = allUpcomingAndOverdue
+                    .filter(item => item.isOverdue || (item.year === currentYear && item.month === currentMonth))
+                    .sort((a, b) => a.date - b.date);
+
+                const overdueCount = displayList.filter(item => item.isOverdue).length;
+                const upcomingCount = displayList.length - overdueCount;
+
+                document.getElementById('total-machines').textContent = machines.length;
+                document.getElementById('upcoming-pm').textContent = upcomingCount;
+                document.getElementById('overdue-pm').textContent = overdueCount;
+
+                const costThisMonth = [...pmRecords, ...breakdownRecords]
+                    .filter(r => new Date(r.pmDate || r.breakdownDate).getMonth() === today.getMonth() && new Date(r.pmDate || r.breakdownDate).getFullYear() === today.getFullYear())
+                    .reduce((sum, r) => sum + r.cost, 0);
+                document.getElementById('cost-this-month').textContent = costThisMonth.toLocaleString();
+
+                const upcomingListContainer = document.getElementById('upcoming-pm-list');
+                upcomingListContainer.innerHTML = '';
+                if (displayList.length === 0) {
+                    upcomingListContainer.innerHTML = `<p class="text-gray-500">ไม่มีรายการ</p>`;
+                } else {
+                    displayList.forEach(item => {
+                        let dateText = '';
+                        let textColor = 'text-gray-600';
+                        if (item.isUnscheduled) {
+                            dateText = `${monthNames[item.month]}/${item.year}`;
+                            textColor = 'text-red-500 font-bold';
+                        } else {
+                            dateText = item.date.toLocaleDateString('th-TH');
+                            if (item.isOverdue) { textColor = 'text-red-500 font-bold'; }
+                        }
+                        upcomingListContainer.innerHTML += `
+                            <div class="flex justify-between items-center text-sm">
+                                <span>${item.machine.name}</span>
+                                <div class="flex items-center space-x-3">
+                                   <span class="${textColor}">${dateText}</span>
+                                   <button class="edit-schedule-btn text-blue-500 hover:text-blue-700" data-machine-id="${item.machine.id}" data-year="${item.year}" data-month="${item.month}">
+                                       <i class="fas fa-calendar-alt"></i>
+                                   </button>
+                                </div>
+                            </div>`;
+                    });
+                }
+                renderMonthlyCostChart();
+                renderPmPlan();
+            };
+            
+            const renderMonthlyCostChart = () => {
+                const year = new Date().getFullYear();
+                document.getElementById('current-year-chart').textContent = year;
+                const chartContainer = document.getElementById('monthly-cost-chart');
+                chartContainer.innerHTML = '';
+                
+                const monthlyCosts = Array(12).fill(0);
+                [...pmRecords, ...breakdownRecords].forEach(r => {
+                    const recordDate = new Date(r.pmDate || r.breakdownDate);
+                    if (recordDate.getFullYear() === year) {
+                        monthlyCosts[recordDate.getMonth()] += r.cost;
+                    }
+                });
+
+                const maxCost = Math.max(...monthlyCosts);
+                if (maxCost === 0) {
+                    chartContainer.innerHTML = `<div class="w-full text-center text-gray-500">ไม่มีข้อมูลค่าใช้จ่ายสำหรับปีนี้</div>`;
+                    return;
+                }
+
+                monthlyCosts.forEach((cost, index) => {
+                    const barHeight = (cost / maxCost * 100);
+                    chartContainer.innerHTML += `
+                        <div class="flex flex-col items-center justify-end h-full">
+                            <div class="w-6 bg-blue-400 hover:bg-blue-600 rounded-t" style="height: ${barHeight}%" title="${cost.toLocaleString()} บาท"></div>
+                            <span class="text-xs mt-1">${monthNames[index]}</span>
+                        </div>`;
+                });
+            };
+
+            const renderPmPlan = () => {
+                const year = new Date().getFullYear();
+                document.getElementById('current-year-plan').textContent = year;
+                const tableBody = document.getElementById('pm-plan-table');
+                tableBody.innerHTML = '';
+                machines.forEach(machine => {
+                    const plan = pmPlan.find(p => p.machineId === machine.id);
+                    let cells = '';
+                    for (let i = 0; i < 12; i++) {
+                        cells += `<td class="py-2 px-2 border text-center">${(plan && plan.months.includes(i)) ? '<span class="pm-due"></span>' : ''}</td>`;
+                    }
+                    tableBody.innerHTML += `<tr class="hover:bg-gray-50"><td class="py-2 px-4 border font-medium">${machine.name}</td>${cells}</tr>`;
+                });
+            };
+
+            const renderMachineSelector = () => {
+                const grid = document.getElementById('machine-cards-grid');
+                grid.innerHTML = '';
+                machines.forEach(m => {
+                    const card = document.createElement('div');
+                    card.className = 'machine-card bg-white p-5 rounded-lg shadow-sm cursor-pointer border-l-4 border-blue-500';
+                    card.dataset.machineId = m.id;
+                    card.innerHTML = `<h3 class="font-bold text-lg text-gray-800">${m.name}</h3><p class="text-sm text-gray-500 mt-1"><i class="fas fa-map-marker-alt mr-2"></i>${m.location}</p><p class="text-sm text-gray-500 mt-1"><i class="fas fa-barcode mr-2"></i>${m.serial}</p>`;
+                    grid.appendChild(card);
+                });
+            };
+
+            const showMachineDetailPage = (machineId) => {
+                const machine = getMachineById(machineId);
+                if (!machine) return;
+                document.getElementById('current-machine-id').value = machineId;
+                ['name', 'location', 'brand', 'model', 'serial'].forEach(key => {
+                    document.getElementById(`detail-machine-${key}`).textContent = machine[key];
+                });
+                renderSubMachines(machineId);
+                renderPmRecords(machineId);
+                renderBreakdownRecords(machineId);
+                showPage('machine-detail');
+            };
+
+            const renderSubMachines = (mainMachineId) => {
+                const tableBody = document.getElementById('sub-machines-table');
+                tableBody.innerHTML = '';
+                subMachines.filter(sm => sm.mainMachineId === mainMachineId).forEach(sm => {
+                    tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${sm.name}</td><td class="py-2 px-4">${sm.details}</td><td class="py-2 px-4 text-right"><button class="delete-sub-machine-btn text-red-500 hover:text-red-700" data-id="${sm.id}"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
+            };
+            const renderPmRecords = (machineId) => {
+                const tableBody = document.getElementById('pm-records-table');
+                tableBody.innerHTML = '';
+                pmRecords.filter(r => r.machineId === machineId && r.status === 'completed').sort((a, b) => new Date(b.pmDate) - new Date(a.pmDate)).forEach(r => {
+                    tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.pmDate).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.technician}</td><td class="py-2 px-4">${r.cost.toLocaleString()}</td><td class="py-2 px-4 text-right"><button class="delete-pm-record-btn text-red-500 hover:text-red-700" data-id="${r.id}"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
+            };
+            const renderBreakdownRecords = (machineId) => {
+                const tableBody = document.getElementById('breakdown-records-table');
+                tableBody.innerHTML = '';
+                breakdownRecords.filter(r => r.machineId === machineId).sort((a, b) => new Date(b.breakdownDate) - new Date(a.breakdownDate)).forEach(r => {
+                    tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.breakdownDate).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.problem}</td><td class="py-2 px-4">${r.cost.toLocaleString()}</td><td class="py-2 px-4 text-right"><button class="delete-breakdown-record-btn text-red-500 hover:text-red-700" data-id="${r.id}"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
+            };
+
+            const populatePmMonthsCheckboxes = (machineId = null) => {
+                const container = document.getElementById('pm-months-checkboxes');
+                container.innerHTML = '';
+                const plan = machineId ? pmPlan.find(p => p.machineId === machineId) : null;
+                const selectedMonths = plan ? plan.months : [];
+                monthNames.forEach((month, index) => {
+                    container.innerHTML += `<label class="flex items-center space-x-2"><input type="checkbox" value="${index}" class="pm-month-cb" ${selectedMonths.includes(index) ? 'checked' : ''}><span>${month}</span></label>`;
+                });
+            };
+
+            // --- EVENT LISTENERS ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(l => l.addEventListener('click', e => { e.preventDefault(); showPage(l.getAttribute('href').substring(1)); }));
+            document.getElementById('back-to-selector-btn').addEventListener('click', () => showPage('machine-selector'));
+            document.getElementById('machine-cards-grid').addEventListener('click', e => {
+                const card = e.target.closest('.machine-card');
+                if (card) showMachineDetailPage(parseInt(card.dataset.machineId));
+            });
+            document.getElementById('add-machine-btn-dashboard').addEventListener('click', () => {
+                document.getElementById('machine-form').reset();
+                document.getElementById('machine-id').value = '';
+                document.getElementById('machine-modal-title').textContent = 'เพิ่มเครื่องจักรใหม่';
+                populatePmMonthsCheckboxes();
+                openModal('machine-modal');
+            });
+            document.getElementById('edit-machine-detail-btn').addEventListener('click', () => {
+                const machineId = parseInt(document.getElementById('current-machine-id').value);
+                const machine = getMachineById(machineId);
+                if(!machine) return;
+                document.getElementById('machine-modal-title').textContent = 'แก้ไขข้อมูลเครื่องจักร';
+                Object.keys(machine).forEach(key => {
+                    const input = document.getElementById(`machine-${key.toLowerCase()}`);
+                    if(input) input.value = machine[key];
+                });
+                document.getElementById('machine-id').value = machine.id;
+                populatePmMonthsCheckboxes(machine.id);
+                openModal('machine-modal');
+            });
+            
+            ['add-sub-machine-btn', 'add-pm-record-btn', 'add-breakdown-btn'].forEach(id => {
+                document.getElementById(id).addEventListener('click', () => {
+                    let formId = '';
+                    let modalId = '';
+                    let dateId = '';
+
+                    if (id === 'add-sub-machine-btn') {
+                        modalId = 'sub-machine-modal';
+                        formId = 'sub-machine-form';
+                    } else if (id === 'add-pm-record-btn') {
+                        modalId = 'pm-record-modal';
+                        formId = 'pm-record-form';
+                        dateId = 'pm-date';
+                    } else if (id === 'add-breakdown-btn') {
+                        modalId = 'breakdown-record-modal';
+                        formId = 'breakdown-record-form';
+                        dateId = 'breakdown-date';
+                    }
+
+                    const formElement = document.getElementById(formId);
+                    if (formElement) {
+                        formElement.reset();
+                    }
+                    
+                    if (dateId) {
+                        const dateInput = document.getElementById(dateId);
+                        if (dateInput) dateInput.valueAsDate = new Date();
+                    }
+
+                    openModal(modalId);
+                });
+            });
+
+            document.querySelectorAll('.cancel-modal-btn').forEach(btn => btn.addEventListener('click', () => btn.closest('.modal-overlay').classList.remove('active')));
+            document.getElementById('upcoming-pm-list').addEventListener('click', e => {
+                const btn = e.target.closest('.edit-schedule-btn');
+                if (btn) {
+                    const { machineId, year, month } = btn.dataset;
+                    const machine = getMachineById(parseInt(machineId));
+                    document.getElementById('schedule-modal-machine-name').textContent = machine.name;
+                    document.getElementById('schedule-machine-id').value = machineId;
+                    document.getElementById('schedule-year').value = year;
+                    document.getElementById('schedule-month').value = month;
+                    const existingRecord = pmRecords.find(r => r.machineId === parseInt(machineId) && r.status === 'scheduled' && new Date(r.pmDate).getFullYear() === parseInt(year) && new Date(r.pmDate).getMonth() === parseInt(month));
+                    const dateInput = document.getElementById('schedule-pm-date');
+                    dateInput.value = existingRecord ? existingRecord.pmDate : new Date(year, month, 15).toISOString().split('T')[0];
+                    openModal('schedule-pm-modal');
+                }
+            });
+            document.getElementById('schedule-pm-form').addEventListener('submit', e => {
+                e.preventDefault();
+                const machineId = parseInt(document.getElementById('schedule-machine-id').value);
+                const year = parseInt(document.getElementById('schedule-year').value);
+                const month = parseInt(document.getElementById('schedule-month').value);
+                const scheduledDate = document.getElementById('schedule-pm-date').value;
+                const existingRecord = pmRecords.find(r => r.machineId === machineId && r.status === 'scheduled' && new Date(r.pmDate).getFullYear() === year && new Date(r.pmDate).getMonth() === month);
+                if (existingRecord) {
+                    existingRecord.pmDate = scheduledDate;
+                } else {
+                    pmRecords.push({ id: Date.now(), machineId, pmDate: scheduledDate, technician: 'N/A', details: 'PM ตามกำหนด', cost: 0, status: 'scheduled' });
+                }
+                saveData(); renderAll(); closeModal('schedule-pm-modal'); showToast('กำหนดวัน PM เรียบร้อยแล้ว');
+            });
+            document.getElementById('machine-form').addEventListener('submit', e => {
+                e.preventDefault();
+                const id = parseInt(document.getElementById('machine-id').value);
+                const machineData = { name: document.getElementById('machine-name').value, location: document.getElementById('machine-location').value, brand: document.getElementById('machine-brand').value, model: document.getElementById('machine-model').value, serial: document.getElementById('machine-serial').value, size: document.getElementById('machine-size').value, purchaseDate: document.getElementById('machine-purchase-date').value, contractValue: parseFloat(document.getElementById('machine-contract-value').value) || 0 };
+                const selectedMonths = Array.from(document.querySelectorAll('.pm-month-cb:checked')).map(cb => parseInt(cb.value));
+                if (id) {
+                    const index = machines.findIndex(m => m.id === id);
+                    machines[index] = { ...machines[index], ...machineData };
+                    const planIndex = pmPlan.findIndex(p => p.machineId === id);
+                    if (planIndex > -1) pmPlan[planIndex].months = selectedMonths; else pmPlan.push({ machineId: id, months: selectedMonths });
+                    showMachineDetailPage(id);
+                } else {
+                    const newId = machines.length > 0 ? Math.max(...machines.map(m => m.id)) + 1 : 1;
+                    machines.push({ id: newId, ...machineData });
+                    pmPlan.push({ machineId: newId, months: selectedMonths });
+                }
+                renderAll(); closeModal('machine-modal'); showToast('บันทึกข้อมูลเครื่องจักรเรียบร้อยแล้ว');
+            });
+            document.getElementById('pm-record-form').addEventListener('submit', e => {
+                e.preventDefault();
+                const currentMachineId = parseInt(document.getElementById('current-machine-id').value);
+                const pmDateValue = document.getElementById('pm-date').value;
+                const pmDate = new Date(pmDateValue);
+                const existingScheduled = pmRecords.find(r => r.machineId === currentMachineId && r.status === 'scheduled' && new Date(r.pmDate).getFullYear() === pmDate.getFullYear() && new Date(r.pmDate).getMonth() === pmDate.getMonth());
+                if (existingScheduled) {
+                    Object.assign(existingScheduled, { pmDate: pmDateValue, technician: document.getElementById('pm-technician').value, details: document.getElementById('pm-details').value, cost: parseFloat(document.getElementById('pm-cost').value) || 0, status: 'completed' });
+                } else {
+                    pmRecords.push({ id: Date.now(), machineId: currentMachineId, pmDate: pmDateValue, technician: document.getElementById('pm-technician').value, details: document.getElementById('pm-details').value, cost: parseFloat(document.getElementById('pm-cost').value) || 0, status: 'completed' });
+                }
+                saveData(); renderPmRecords(currentMachineId); renderOverallDashboard(); closeModal('pm-record-modal');
+            });
+            const createSimpleRecordHandler = (formId, stateArray, renderFn) => {
+                 document.getElementById(formId).addEventListener('submit', e => {
+                    e.preventDefault();
+                    const currentMachineId = parseInt(document.getElementById('current-machine-id').value);
+                    const record = { id: Date.now() };
+                    if (formId.includes('sub-machine')) {
+                        Object.assign(record, { mainMachineId: currentMachineId, name: document.getElementById('sub-machine-name').value, details: document.getElementById('sub-machine-details').value });
+                    } else {
+                        Object.assign(record, { machineId: currentMachineId, breakdownDate: document.getElementById('breakdown-date').value, cost: parseFloat(document.getElementById('breakdown-cost').value) || 0, problem: document.getElementById('breakdown-problem').value, action: document.getElementById('breakdown-action').value });
+                    }
+                    stateArray.push(record); saveData(); renderFn(currentMachineId); renderOverallDashboard(); closeModal(formId.replace('form', 'modal'));
+                });
+            };
+            createSimpleRecordHandler('sub-machine-form', subMachines, renderSubMachines);
+            createSimpleRecordHandler('breakdown-record-form', breakdownRecords, renderBreakdownRecords);
+            document.getElementById('machine-detail').addEventListener('click', e => {
+                const currentMachineId = parseInt(document.getElementById('current-machine-id').value);
+                const confirmDelete = (targetClass, stateArray, renderFn) => {
+                    const btn = e.target.closest(targetClass);
+                    if (btn) {
+                        const id = parseInt(btn.dataset.id);
+                        if (confirm('ยืนยันการลบ?')) {
+                            const index = stateArray.findIndex(item => item.id === id);
+                            if (index > -1) stateArray.splice(index, 1);
+                            saveData(); renderFn(currentMachineId); renderOverallDashboard();
+                        }
+                    }
+                };
+                confirmDelete('.delete-sub-machine-btn', subMachines, renderSubMachines);
+                confirmDelete('.delete-pm-record-btn', pmRecords, renderPmRecords);
+                confirmDelete('.delete-breakdown-record-btn', breakdownRecords, renderBreakdownRecords);
+            });
+            showPage('overall-dashboard'); renderAll();
+        });
+    </script>
+</body>
+</html>
+
