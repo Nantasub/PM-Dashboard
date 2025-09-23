@@ -172,11 +172,12 @@
                             <h2 id="detail-machine-name" class="text-3xl font-bold"></h2>
                             <div id="detail-machine-info-grid" class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm text-gray-600">
                                 <div><strong>ตำแหน่ง:</strong> <span id="detail-machine-location"></span></div><div><strong>ยี่ห้อ:</strong> <span id="detail-machine-brand"></span></div><div><strong>รุ่น:</strong> <span id="detail-machine-model"></span></div><div><strong>Serial:</strong> <span id="detail-machine-serial"></span></div>
+                                <div class="col-span-2 md:col-span-4"><strong>มูลค่าสัญญารายปี:</strong> <span id="detail-machine-contract-value"></span> บาท</div>
                             </div>
                         </div>
                         <div class="flex items-center space-x-4 flex-shrink-0">
                             <button id="adjust-pm-plan-btn" class="text-gray-600 hover:text-blue-800"><i class="fas fa-calendar-alt mr-2"></i>ปรับแผน PM</button>
-                            <button id="edit-machine-detail-btn" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit mr-2"></i>แก้ไขข้อมูลเครื่องจักร</button>
+                            <button id="edit-machine-detail-btn" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit mr-2"></i>แก้ไขข้อมูล</button>
                         </div>
                     </div>
                 </div>
@@ -498,7 +499,13 @@
                 const machine = getMachineById(machineId);
                 if (!machine) return;
                 document.getElementById('current-machine-id').value = machineId;
-                ['name', 'location', 'brand', 'model', 'serial'].forEach(key => { document.getElementById(`detail-machine-${key}`).textContent = machine[key]; });
+                ['name', 'location', 'brand', 'model', 'serial', 'contractValue'].forEach(key => {
+                     const element = document.getElementById(`detail-machine-${key}`);
+                     if(element) element.textContent = machine[key] || '-';
+                });
+                const contractValueEl = document.getElementById('detail-machine-contract-value');
+                if (contractValueEl) contractValueEl.textContent = (machine.contractValue || 0).toLocaleString();
+
 
                 const contentContainer = document.getElementById('machine-detail-content');
                 contentContainer.innerHTML = ''; 
@@ -951,11 +958,11 @@
                 if(!arr || arr.length === 0) return '';
                 const array = [Object.keys(arr[0])].concat(arr);
                 return array.map(it => {
-                    return Object.values(it).toString();
+                    return Object.values(it).map(val => `"${String(val).replace(/"/g, '""')}"`).toString();
                 }).join('\n');
             };
             const downloadCSV = (csvStr, filename) => {
-                const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+                const blob = new Blob(["\uFEFF" + csvStr], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement("a");
                 if (link.download !== undefined) {
                     const url = URL.createObjectURL(blob);
