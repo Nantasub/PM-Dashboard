@@ -43,6 +43,15 @@
             width: 1.75rem; height: 1.75rem; display: inline-flex;
             align-items: center; justify-content: center; font-weight: bold;
         }
+        .clickable-row { cursor: pointer; }
+        .clickable-row:hover { background-color: #f9fafb; }
+        .form-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -60,6 +69,9 @@
                 </a>
                 <a href="#machine-selector" class="nav-link flex items-center py-3 px-6 text-gray-700 hover:bg-blue-50 hover:text-blue-600">
                     <i class="fas fa-th-large w-6 text-center"></i><span class="ml-4">แดชบอร์ดเครื่องจักร</span>
+                </a>
+                <a href="#export-data" class="nav-link flex items-center py-3 px-6 text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                    <i class="fas fa-download w-6 text-center"></i><span class="ml-4">ดึงข้อมูล</span>
                 </a>
             </nav>
             <div class="p-6 border-t">
@@ -91,23 +103,43 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-sm">
-                        <h3 class="text-xl font-bold mb-4">PM ในเดือนนี้/เลยกำหนด</h3>
-                        <div id="upcoming-pm-list" class="space-y-3"></div>
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm overflow-y-auto max-h-[70vh]">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <h3 class="text-xl font-bold mb-4">PM ในเดือนนี้/เลยกำหนด</h3>
+                                <div id="upcoming-pm-list" class="space-y-3"></div>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold mb-4">แจ้งเตือนเปลี่ยนแบตเตอรี่ (90 วัน)</h3>
+                                <div id="battery-alert-list" class="space-y-3"></div>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold mb-4">แจ้งเตือนเปลี่ยน Filter (30 วัน)</h3>
+                                <div id="filter-alert-list" class="space-y-3"></div>
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-3">
+                                <h3 class="text-xl font-bold mt-4 mb-4">รายการรอเปลี่ยนอะไหล่</h3>
+                                <div id="parts-needed-alert-list" class="space-y-4"></div>
+                            </div>
+                            <div class="md:col-span-2 lg:col-span-3">
+                                <h3 class="text-xl font-bold mt-4 mb-4">แจ้งเตือนผล IAQ</h3>
+                                <div id="iaq-alert-list" class="space-y-4"></div>
+                            </div>
+                        </div>
                     </div>
-                     <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">แผน PM ประจำปี <span id="current-year-plan"></span></h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse pm-plan-table">
+                                <thead><tr class="bg-gray-50"><th class="py-2 px-4 border">เครื่องจักร</th><th class="py-2 px-2 border text-center">ม.ค.</th><th class="py-2 px-2 border text-center">ก.พ.</th><th class="py-2 px-2 border text-center">มี.ค.</th><th class="py-2 px-2 border text-center">เม.ย.</th><th class="py-2 px-2 border text-center">พ.ค.</th><th class="py-2 px-2 border text-center">มิ.ย.</th><th class="py-2 px-2 border text-center">ก.ค.</th><th class="py-2 px-2 border text-center">ส.ค.</th><th class="py-2 px-2 border text-center">ก.ย.</th><th class="py-2 px-2 border text-center">ต.ค.</th><th class="py-2 px-2 border text-center">พ.ย.</th><th class="py-2 px-2 border text-center">ธ.ค.</th></tr></thead>
+                                <tbody id="pm-plan-table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm">
                         <h3 class="text-xl font-bold mb-4">สรุปค่าใช้จ่ายรายเดือน (ปี <span id="current-year-chart"></span>)</h3>
-                        <div id="monthly-cost-chart-container" class="relative"><canvas id="monthly-cost-chart"></canvas></div>
-                    </div>
-                </div>
-                 <div class="mt-6 bg-white p-6 rounded-lg shadow-sm">
-                    <h3 class="text-xl font-bold mb-4">แผน PM ประจำปี <span id="current-year-plan"></span></h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse pm-plan-table">
-                            <thead><tr class="bg-gray-50"><th class="py-2 px-4 border">เครื่องจักร</th><th class="py-2 px-2 border text-center">ม.ค.</th><th class="py-2 px-2 border text-center">ก.พ.</th><th class="py-2 px-2 border text-center">มี.ค.</th><th class="py-2 px-2 border text-center">เม.ย.</th><th class="py-2 px-2 border text-center">พ.ค.</th><th class="py-2 px-2 border text-center">มิ.ย.</th><th class="py-2 px-2 border text-center">ก.ค.</th><th class="py-2 px-2 border text-center">ส.ค.</th><th class="py-2 px-2 border text-center">ก.ย.</th><th class="py-2 px-2 border text-center">ต.ค.</th><th class="py-2 px-2 border text-center">พ.ย.</th><th class="py-2 px-2 border text-center">ธ.ค.</th></tr></thead>
-                            <tbody id="pm-plan-table"></tbody>
-                        </table>
+                        <div id="monthly-cost-chart-container" class="relative h-64"><canvas id="monthly-cost-chart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -117,54 +149,69 @@
                 <div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-bold">แดชบอร์ดเครื่องจักร</h2></div>
                 <div id="machine-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
             </div>
+            
+             <!-- Export Data Page -->
+            <div id="export-data" class="page">
+                <h2 class="text-3xl font-bold mb-6">ดึงข้อมูลเครื่องจักร</h2>
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <label for="export-machine-select" class="form-label">เลือกเครื่องจักรที่ต้องการดึงข้อมูล</label>
+                    <select id="export-machine-select" class="w-full md:w-1/2 mt-1 border border-gray-300 rounded-md py-2 px-3">
+                        <option value="">-- กรุณาเลือก --</option>
+                    </select>
+                    <div id="export-buttons-container" class="mt-4 space-x-2"></div>
+                    <pre id="export-data-output" class="bg-gray-800 text-white p-4 rounded-lg mt-4 max-h-[60vh] overflow-auto text-xs hidden"></pre>
+                </div>
+            </div>
 
-            <!-- Machine Detail Page -->
+            <!-- Machine/System Detail Page -->
             <div id="machine-detail" class="page">
                 <button id="back-to-selector-btn" class="mb-6 text-blue-600 hover:underline"><i class="fas fa-arrow-left mr-2"></i>กลับไปหน้าแดชบอร์ดเครื่องจักร</button>
                 <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
                     <div class="flex justify-between items-start">
                         <div>
                             <h2 id="detail-machine-name" class="text-3xl font-bold"></h2>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm text-gray-600">
+                            <div id="detail-machine-info-grid" class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm text-gray-600">
                                 <div><strong>ตำแหน่ง:</strong> <span id="detail-machine-location"></span></div><div><strong>ยี่ห้อ:</strong> <span id="detail-machine-brand"></span></div><div><strong>รุ่น:</strong> <span id="detail-machine-model"></span></div><div><strong>Serial:</strong> <span id="detail-machine-serial"></span></div>
                             </div>
                         </div>
-                        <button id="edit-machine-detail-btn" class="text-blue-600 hover:text-blue-800 flex-shrink-0"><i class="fas fa-edit mr-2"></i>แก้ไขข้อมูลเครื่องจักร</button>
+                        <div class="flex items-center space-x-4 flex-shrink-0">
+                            <button id="adjust-pm-plan-btn" class="text-gray-600 hover:text-blue-800"><i class="fas fa-calendar-alt mr-2"></i>ปรับแผน PM</button>
+                            <button id="edit-machine-detail-btn" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit mr-2"></i>แก้ไขข้อมูลเครื่องจักร</button>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Left Column -->
-                    <div class="flex flex-col space-y-6">
-                        <!-- Generic Records -->
-                        <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">ประวัติการทำ PM</h3><button id="add-pm-record-btn" class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">ผู้ปฏิบัติงาน</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="pm-records-table"></tbody></table></div></div>
-                        <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">ประวัติ Breakdown</h3><button id="add-breakdown-btn" class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่เสีย</th><th class="py-2 px-4">อาการ</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="breakdown-records-table"></tbody></table></div></div>
-                        <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">เครื่องจักรย่อย/อุปกรณ์</h3><button id="add-sub-machine-btn" class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">ชื่อ</th><th class="py-2 px-4">รายละเอียด</th><th class="py-2 px-4"></th></tr></thead><tbody id="sub-machines-table"></tbody></table></div></div>
-                    </div>
-                    <!-- Right Column: Specifics -->
-                    <div class="flex flex-col space-y-6">
-                        <!-- Generator Specifics -->
-                        <div id="generator-specifics" class="hidden space-y-6">
-                             <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">บันทึกการเปลี่ยนอะไหล่</h3><button id="add-parts-record-btn" class="bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-40"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">อะไหล่</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="parts-records-table"></tbody></table></div><div class="relative mt-4"><canvas id="parts-cost-chart"></canvas></div></div>
-                             <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">No Load Test Run</h3><button id="add-no-load-test-btn" class="bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-40"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-2">วันที่/เวลา</th><th class="py-2 px-2">อุณหภูมิ</th><th class="py-2 px-2">น้ำมัน(L)</th><th class="py-2 px-2"></th></tr></thead><tbody id="no-load-tests-table"></tbody></table></div><div class="relative mt-4"><canvas id="no-load-chart"></canvas></div></div>
-                             <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">On Load Run</h3><button id="add-on-load-run-btn" class="bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-40"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-2">วันที่/เวลา</th><th class="py-2 px-2">น้ำมันที่ใช้(L)</th><th class="py-2 px-2">%Load</th><th class="py-2 px-2"></th></tr></thead><tbody id="on-load-runs-table"></tbody></table></div><div class="relative mt-4"><canvas id="on-load-chart"></canvas></div></div>
-                             <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">Dummy Load Test</h3><button id="add-dummy-load-test-btn" class="bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-40"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">ผล</th><th class="py-2 px-4"></th></tr></thead><tbody id="dummy-load-tests-table"></tbody></table></div></div>
-                        </div>
-                        <!-- Firepump Specifics -->
-                         <div id="firepump-specifics" class="hidden space-y-6">
-                             <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">บันทึกการเปลี่ยนอะไหล่</h3><button id="add-fp-parts-record-btn" class="bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">อะไหล่</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="fp-parts-records-table"></tbody></table></div></div>
-                             <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">Test Run</h3><button id="add-firepump-test-run-btn" class="bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-2">วันที่/เวลา</th><th class="py-2 px-2">น้ำมัน(L)</th><th class="py-2 px-2">แรงดัน(bar)</th><th class="py-2 px-2"></th></tr></thead><tbody id="firepump-test-runs-table"></tbody></table></div></div>
-                        </div>
-                    </div>
+                <div id="machine-detail-content">
+                    <!-- Specific content will be injected here -->
                 </div>
                 <input type="hidden" id="current-machine-id">
             </div>
+
+            <!-- Sub-Unit Detail Page -->
+            <div id="sub-unit-detail" class="page">
+                 <button id="back-to-machine-detail-btn" class="mb-6 text-blue-600 hover:underline"><i class="fas fa-arrow-left mr-2"></i>กลับไปหน้าระบบ</button>
+                 <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 id="detail-sub-unit-name" class="text-3xl font-bold"></h2>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm text-gray-600">
+                                <div><strong>ตำแหน่ง:</strong> <span id="detail-sub-unit-location"></span></div><div><strong>ยี่ห้อ:</strong> <span id="detail-sub-unit-brand"></span></div><div><strong>รุ่น:</strong> <span id="detail-sub-unit-model"></span></div><div><strong>Serial:</strong> <span id="detail-sub-unit-serial"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+                 <div id="sub-unit-detail-content">
+                    <!-- Main history items and specific items for sub-units will be injected here -->
+                 </div>
+                <input type="hidden" id="current-sub-unit-id">
+            </div>
+
         </main>
     </div>
 
     <!-- Modals -->
-    <div id="machine-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 id="machine-modal-title" class="text-2xl font-bold mb-6"></h3><form id="machine-form"><input type="hidden" id="machine-id"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="text" id="machine-name" required placeholder="ชื่อเครื่องจักร" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-location" required placeholder="ตำแหน่งติดตั้ง" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-brand" required placeholder="ยี่ห้อ" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-model" required placeholder="รุ่น" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-serial" required placeholder="Serial Number" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="machine-size" placeholder="ขนาดเครื่องจักร" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="date" id="machine-purchase-date" required class="w-full border border-gray-300 rounded-md py-2 px-3 text-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="number" id="machine-contract-value" min="0" value="0" placeholder="มูลค่าสัญญา (รายปี)" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="mt-4"><label class="block text-sm font-medium text-gray-700 mb-2">กำหนดเดือนที่ทำ PM</label><div id="pm-months-checkboxes" class="grid grid-cols-4 gap-2"></div></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div></form></div></div>
-    <div id="pm-record-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">บันทึกการทำ PM</h3><form id="pm-record-form"><input type="hidden" id="pm-record-id"><div class="space-y-4"><input type="date" id="pm-date" required class="w-full border border-gray-300 rounded-md py-2 px-3 text-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="text" id="pm-technician" required placeholder="ผู้ปฏิบัติงาน" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><input type="number" id="pm-cost" min="0" value="0" placeholder="ค่าใช้จ่าย (บาท)" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><textarea id="pm-details" rows="3" required placeholder="รายละเอียดการทำงาน" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div></form></div></div>
+    <div id="machine-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 id="machine-modal-title" class="text-2xl font-bold mb-6"></h3><form id="machine-form"><input type="hidden" id="machine-id"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="form-label" for="machine-name">ชื่อเครื่องจักร</label><input type="text" id="machine-name" required class="w-full border border-gray-300 rounded-md py-2 px-3"></div><div><label class="form-label" for="machine-location">ตำแหน่งติดตั้ง</label><input type="text" id="machine-location" required class="w-full border border-gray-300 rounded-md py-2 px-3"></div><div><label class="form-label" for="machine-brand">ยี่ห้อ</label><input type="text" id="machine-brand" required class="w-full border border-gray-300 rounded-md py-2 px-3"></div><div><label class="form-label" for="machine-model">รุ่น</label><input type="text" id="machine-model" required class="w-full border border-gray-300 rounded-md py-2 px-3"></div><div><label class="form-label" for="machine-serial">Serial Number</label><input type="text" id="machine-serial" required class="w-full border border-gray-300 rounded-md py-2 px-3"></div><div><label class="form-label" for="machine-size">ขนาดเครื่องจักร</label><input type="text" id="machine-size" class="w-full border border-gray-300 rounded-md py-2 px-3"></div><div><label class="form-label" for="machine-purchase-date">วันที่ซื้อ</label><input type="date" id="machine-purchase-date" required class="w-full border border-gray-300 rounded-md py-2 px-3 text-gray-500"></div><div><label class="form-label" for="machine-contract-value">มูลค่าสัญญา (รายปี)</label><input type="number" id="machine-contract-value" min="0" value="0" class="w-full border border-gray-300 rounded-md py-2 px-3"></div></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button></div></form></div></div>
+    <div id="pm-plan-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 id="pm-plan-modal-title" class="text-2xl font-bold mb-6">ปรับแผน PM</h3><form id="pm-plan-form"><div class="mt-4"><label class="block text-sm font-medium text-gray-700 mb-2">กำหนดเดือนที่ทำ PM</label><div id="pm-months-checkboxes" class="grid grid-cols-4 gap-2"></div></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึกแผน</button></div></form></div></div>
+    <div id="pm-record-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">บันทึกการทำ PM</h3><form id="pm-record-form"><div class="space-y-4"><input type="date" id="pm-date" required class="w-full border border-gray-300 rounded-md py-2 px-3 text-gray-500"><input type="text" id="pm-technician" required placeholder="ผู้ปฏิบัติงาน" class="w-full border border-gray-300 rounded-md py-2 px-3"><input type="number" id="pm-cost" min="0" value="0" placeholder="ค่าใช้จ่าย (บาท)" class="w-full border border-gray-300 rounded-md py-2 px-3"><textarea id="pm-details" rows="2" required placeholder="รายละเอียดการทำงาน" class="w-full border border-gray-300 rounded-md py-2 px-3"></textarea><textarea id="pm-summary" rows="2" placeholder="สรุปรายละเอียดการทำ PM" class="w-full border border-gray-300 rounded-md py-2 px-3"></textarea><div class="flex items-center space-x-2"><input type="checkbox" id="pm-needs-parts" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"><label for="pm-needs-parts" class="text-sm font-medium text-gray-700">ต้องสั่งซื้ออะไหล่</label></div><div id="pm-parts-needed-container" class="hidden"><label for="pm-parts-needed" class="block text-sm font-medium text-gray-700">รายการอะไหล่ที่ต้องเปลี่ยน</label><textarea id="pm-parts-needed" rows="2" placeholder="เช่น ไส้กรอง A, สายพาน B" class="mt-1 w-full border-gray-300 rounded-md shadow-sm"></textarea></div></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button></div></form></div></div>
     <div id="sub-machine-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-md p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">เพิ่ม/แก้ไข เครื่องจักรย่อย</h3><form id="sub-machine-form"><input type="hidden" id="sub-machine-id"><div class="space-y-4"><input type="text" id="sub-machine-name" required placeholder="ชื่ออุปกรณ์" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><textarea id="sub-machine-details" rows="2" placeholder="รายละเอียด (เช่น รุ่น, Serial)" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div></form></div></div>
     <div id="breakdown-record-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">บันทึก Breakdown</h3><form id="breakdown-record-form"><input type="hidden" id="breakdown-record-id"><div class="space-y-4"><input type="date" id="breakdown-date" required class="w-full border border-gray-300 rounded-md py-2 px-3 text-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500"><textarea id="breakdown-problem" rows="2" required placeholder="รายละเอียดปัญหา/อาการ" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea><textarea id="breakdown-action" rows="2" required placeholder="การดำเนินการแก้ไข" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea><input type="number" id="breakdown-cost" min="0" value="0" placeholder="ค่าใช้จ่าย (บาท)" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึก</button></div></form></div></div>
     <div id="schedule-pm-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-sm p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-2">กำหนดวันที่เข้า PM</h3><p id="schedule-modal-machine-name" class="text-gray-600 mb-6"></p><form id="schedule-pm-form"><input type="hidden" id="schedule-machine-id"><input type="hidden" id="schedule-year"><input type="hidden" id="schedule-month"><div><label for="schedule-pm-date" class="block text-sm font-medium text-gray-700">เลือกวันที่</label><input type="date" id="schedule-pm-date" required class="mt-1 w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">บันทึกวันที่</button></div></form></div></div>
@@ -174,59 +221,84 @@
     <div id="on-load-run-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">บันทึก On Load Run</h3><form id="on-load-run-form"><div class="grid grid-cols-2 gap-4"><input type="date" id="on-load-date" required class="w-full border rounded py-2 px-3"><input type="time" id="on-load-time" required class="w-full border rounded py-2 px-3"><input type="number" id="on-load-fuel-used" placeholder="น้ำมันที่ใช้ (L)" class="w-full border rounded py-2 px-3"><input type="number" id="on-load-percent" placeholder="% Load" class="w-full border rounded py-2 px-3"></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button></div></form></div></div>
     <div id="dummy-load-test-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-md p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">บันทึก Dummy Load Test</h3><form id="dummy-load-test-form"><div class="space-y-4"><input type="date" id="dummy-load-date" required class="w-full border rounded py-2 px-3"><input type="text" id="dummy-load-result" required placeholder="ผลการทดสอบ" class="w-full border rounded py-2 px-3"></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button></div></form></div></div>
     <div id="firepump-test-run-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">บันทึก Fire Pump Test Run</h3><form id="firepump-test-run-form"><div class="grid grid-cols-2 gap-4"><input type="date" id="fp-test-date" required class="w-full border rounded py-2 px-3"><input type="time" id="fp-test-time" required class="w-full border rounded py-2 px-3"><input type="number" id="fp-test-fuel" placeholder="น้ำมันคงเหลือ (L)" class="w-full border rounded py-2 px-3"><input type="number" id="fp-test-pressure" placeholder="แรงดันที่ทำได้ (bar)" class="w-full border rounded py-2 px-3"></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button></div></form></div></div>
+    <div id="sub-unit-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 id="sub-unit-modal-title" class="text-2xl font-bold mb-6"></h3><form id="sub-unit-form"><input type="hidden" id="sub-unit-id"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="form-label" for="sub-unit-name">ชื่อ/รหัส Unit</label><input type="text" id="sub-unit-name" required class="w-full border rounded py-2 px-3"></div><div><label class="form-label" for="sub-unit-location">ตำแหน่งติดตั้ง</label><input type="text" id="sub-unit-location" required class="w-full border rounded py-2 px-3"></div><div><label class="form-label" for="sub-unit-brand">ยี่ห้อ</label><input type="text" id="sub-unit-brand" class="w-full border rounded py-2 px-3"></div><div><label class="form-label" for="sub-unit-model">รุ่น</label><input type="text" id="sub-unit-model" class="w-full border rounded py-2 px-3"></div><div><label class="form-label" for="sub-unit-serial">Serial Number</label><input type="text" id="sub-unit-serial" class="w-full border rounded py-2 px-3"></div><div><label class="form-label" for="sub-unit-size">ขนาด</label><input type="text" id="sub-unit-size" class="w-full border rounded py-2 px-3"></div></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button></div></form></div></div>
+    <div id="battery-plan-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">เพิ่มแผนเปลี่ยนแบตเตอรี่</h3><form id="battery-plan-form"><div class="space-y-4"><div><label for="battery-change-date" class="block text-sm font-medium text-gray-700">วันที่เปลี่ยน</label><input type="date" id="battery-change-date" required class="mt-1 w-full border rounded py-2 px-3"></div><div class="grid grid-cols-3 gap-4"><input type="text" id="battery-size" required placeholder="ขนาดแบตเตอรี่ (เช่น 12V 9Ah)" class="w-full border rounded py-2 px-3"><input type="number" id="battery-quantity" min="1" required placeholder="จำนวน (ก้อน)" class="w-full border rounded py-2 px-3"><input type="number" id="battery-price" min="0" value="0" placeholder="ราคา (บาท)" class="w-full border rounded py-2 px-3"></div></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button></div></form></div></div>
+    <div id="iaq-record-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">บันทึกผลการตรวจวัด IAQ</h3><form id="iaq-record-form"><div class="space-y-4"><div><label for="iaq-date" class="block text-sm font-medium text-gray-700">วันที่ตรวจวัด</label><input type="date" id="iaq-date" required class="mt-1 w-full border rounded py-2 px-3"></div><div><p class="text-sm font-medium text-gray-700">ผลการตรวจ</p><div class="flex items-center space-x-4 mt-1"><label class="flex items-center"><input type="radio" name="iaq-result" value="pass" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500" checked> <span class="ml-2">ผ่าน</span></label><label class="flex items-center"><input type="radio" name="iaq-result" value="fail" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"> <span class="ml-2">ไม่ผ่าน</span></label></div></div><div id="iaq-fail-reason-container" class="hidden"><label for="iaq-fail-reason" class="block text-sm font-medium text-gray-700">Parameter ที่ไม่ผ่าน</label><textarea id="iaq-fail-reason" rows="2" placeholder="เช่น ค่าฝุ่น PM2.5, อุณหภูมิ" class="mt-1 w-full border-gray-300 rounded-md shadow-sm"></textarea></div></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button></div></form></div></div>
+    <div id="filter-plan-modal" class="modal-overlay"><div class="modal-content bg-white w-full max-w-lg p-8 rounded-lg shadow-xl"><h3 class="text-2xl font-bold mb-6">เพิ่มแผนเปลี่ยน Filter</h3><form id="filter-plan-form"><div class="space-y-4"><div><label for="filter-size" class="block text-sm font-medium text-gray-700">ขนาด Filter</label><input type="text" id="filter-size" required placeholder="เช่น 20x20x1 inch" class="mt-1 w-full border rounded py-2 px-3"></div><div><label for="filter-month" class="block text-sm font-medium text-gray-700">เดือนที่จะเปลี่ยน</label><select id="filter-month" class="mt-1 w-full border rounded py-2 px-3"></select></div></div><div class="mt-6 flex justify-end space-x-4"><button type="button" class="cancel-modal-btn bg-gray-200 px-4 py-2 rounded-lg">ยกเลิก</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button></div></form></div></div>
     
     <div id="toast-notification" class="fixed bottom-5 right-5 bg-green-500 text-white py-3 px-5 rounded-lg shadow-lg opacity-0 transition-opacity duration-500"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- STATE MANAGEMENT ---
-            let charts = {}; // Object to hold chart instances
+            let charts = {};
             let machines = JSON.parse(localStorage.getItem('machines')) || [
                 { id: 1, type: 'generator', name: 'Generator No.1', location: 'ห้องเครื่องจักรกล 1', brand: 'Cummins', model: 'C300D5', serial: 'GEN-001', size: '3x1.5x2 m', purchaseDate: '2021-02-10', contractValue: 120000 },
                 { id: 2, type: 'generator', name: 'Generator No.2', location: 'ห้องเครื่องจักรกล 2', brand: 'Caterpillar', model: 'C15', serial: 'GEN-002', size: '3.2x1.5x2 m', purchaseDate: '2022-03-15', contractValue: 125000 },
-                { id: 3, type: 'firepump', name: 'Fire Pump', location: 'ห้องปั๊มน้ำ', brand: 'Clarke', model: 'JU6H-UFADF0', serial: 'FP-001', size: '250 GPM', purchaseDate: '2020-01-20', contractValue: 45000 }
+                { id: 3, type: 'firepump', name: 'Fire Pump', location: 'ห้องปั๊มน้ำ', brand: 'Clarke', model: 'JU6H-UFADF0', serial: 'FP-001', size: '250 GPM', purchaseDate: '2020-01-20', contractValue: 45000 },
+                { id: 4, type: 'ups', name: 'ระบบ UPS', location: 'ทั่วอาคาร', brand: '', model: '', serial: '', size: '', purchaseDate: '2020-01-01', contractValue: 75000 },
+                { id: 5, type: 'elevator', name: 'ระบบลิฟต์', location: 'ทั่วอาคาร', brand: '', model: '', serial: '', size: '', purchaseDate: '2019-12-01', contractValue: 350000 },
+                { id: 6, type: 'escalator', name: 'บันไดเลื่อน', location: 'โถงกลาง', brand: 'Hitachi', model: 'EX-S', serial: 'ESC-01', size: '35 Deg', purchaseDate: '2019-12-01', contractValue: 60000 },
+                { id: 7, type: 'chiller', name: 'ระบบ Chiller', location: 'ชั้นดาดฟ้า', brand: '', model: '', serial: '', size: '', purchaseDate: '2019-11-01', contractValue: 450000 },
+                { id: 8, type: 'mdb', name: 'ตู้ MDB', location: 'ห้องไฟฟ้า', brand: 'Schneider', model: 'Okken', serial: 'MDB-01', size: 'N/A', purchaseDate: '2019-10-01', contractValue: 25000 },
+                { id: 9, type: 'pneumatic_tube', name: 'ระบบท่อลม', location: 'ทั่วอาคาร', brand: 'Swisslog', model: 'TranspoNet', serial: 'N/A', size: 'N/A', purchaseDate: '2020-02-01', contractValue: 90000 },
+                { id: 10, type: 'or_hvac', name: 'ระบบปรับอากาศห้องผ่าตัด', location: 'แผนกห้องผ่าตัด', brand: '', model: '', serial: '', size: '', purchaseDate: '2020-03-01', contractValue: 250000 },
+                { id: 11, type: 'cargo_lift', name: 'ลิฟต์ส่งของ', location: 'แผนกขนส่ง', brand: 'Kone', model: 'TranSys', serial: 'CL-01', size: '1500kg', purchaseDate: '2020-01-15', contractValue: 55000 },
+                { id: 12, type: 'water_filter', name: 'เครื่องกรองน้ำ', location: 'ห้อง RO', brand: 'Pentair', model: 'Aquiline', serial: 'WF-RO-01', size: 'N/A', purchaseDate: '2021-05-20', contractValue: 30000 },
+                { id: 13, type: 'morgue_refrigerator', name: 'ตู้แช่ศพ', location: 'แผนกนิติเวช', brand: 'CEABIS', model: 'Kam 6', serial: 'MR-01', size: '6-body', purchaseDate: '2020-06-01', contractValue: 20000 },
             ];
+            let subUnits = JSON.parse(localStorage.getItem('subUnits')) || {
+                ups: [ { id: 501, parentId: 4, name: 'UPS-Server-01', location: 'ห้อง Server หลัก', brand: 'APC', model: 'Symmetra', serial: 'UPS-SVR-01', size: '20kVA' }, { id: 502, parentId: 4, name: 'UPS-Control-01', location: 'ห้องควบคุม', brand: 'Eaton', model: '9PX', serial: 'UPS-CTL-01', size: '5kVA' } ],
+                elevator: [
+                    { id: 703, parentId: 5, name: 'ลิฟต์ No.3', location: 'Zone A', brand: 'Mitsubishi', model: 'NEXIEZ', serial: 'EL-A-03', size: '15p' }, { id: 704, parentId: 5, name: 'ลิฟต์ No.4', location: 'Zone A', brand: 'Mitsubishi', model: 'NEXIEZ', serial: 'EL-A-04', size: '15p' },
+                    { id: 705, parentId: 5, name: 'ลิฟต์ No.5', location: 'Zone B', brand: 'Mitsubishi', model: 'NEXIEZ', serial: 'EL-B-05', size: '15p' }, { id: 706, parentId: 5, name: 'ลิฟต์ No.6', location: 'Zone B', brand: 'Mitsubishi', model: 'NEXIEZ', serial: 'EL-B-06', size: '15p' },
+                    { id: 707, parentId: 5, name: 'ลิฟต์ No.7', location: 'Zone C (บริการ)', brand: 'Mitsubishi', model: 'NEXIEZ-CR', serial: 'EL-C-07', size: '2000kg' }, { id: 709, parentId: 5, name: 'ลิฟต์ No.9', location: 'Zone D', brand: 'Hitachi', model: 'HGP', serial: 'EL-D-09', size: '12p' },
+                    { id: 710, parentId: 5, name: 'ลิฟต์ No.10', location: 'Zone D', brand: 'Hitachi', model: 'HGP', serial: 'EL-D-10', size: '12p' },
+                ],
+                chiller: [
+                    { id: 802, parentId: 7, name: 'Chiller No.2', location: 'ดาดฟ้า Zone A', brand: 'Trane', model: 'CVHF', serial: 'CH-A-02', size: '500 Ton' }, { id: 803, parentId: 7, name: 'Chiller No.3', location: 'ดาดฟ้า Zone B', brand: 'Trane', model: 'CVHF', serial: 'CH-B-03', size: '500 Ton' },
+                    { id: 804, parentId: 7, name: 'Chiller No.4', location: 'ดาดฟ้า Zone C', brand: 'Carrier', model: '19XR', serial: 'CH-C-04', size: '450 Ton' },
+                ],
+                or_hvac: [
+                    { id: 901, parentId: 10, name: 'ห้องผ่าตัดหมายเลข 1', location: 'OR Floor', brand: 'Daikin', model: 'VRV', serial: 'OR-01', size: 'N/A' }, { id: 902, parentId: 10, name: 'ห้องผ่าตัดหมายเลข 2', location: 'OR Floor', brand: 'Daikin', model: 'VRV', serial: 'OR-02', size: 'N/A' },
+                    { id: 903, parentId: 10, name: 'ห้องผ่าตัดหมายเลข 3', location: 'OR Floor', brand: 'Daikin', model: 'VRV', serial: 'OR-03', size: 'N/A' }, { id: 904, parentId: 10, name: 'ห้องผ่าตัดหมายเลข 4', location: 'OR Floor', brand: 'Daikin', model: 'VRV', serial: 'OR-04', size: 'N/A' },
+                    { id: 905, parentId: 10, name: 'ห้องผ่าตัดหมายเลข 5', location: 'OR Floor', brand: 'Daikin', model: 'VRV', serial: 'OR-05', size: 'N/A' }, { id: 907, parentId: 10, name: 'ห้องผ่าตัดหมายเลข 7', location: 'OR Floor', brand: 'Daikin', model: 'VRV', serial: 'OR-07', size: 'N/A' }
+                ]
+            };
+            let batteryPlans = JSON.parse(localStorage.getItem('batteryPlans')) || [
+                { id: 601, parentId: 501, size: '12V 7Ah', quantity: 16, price: 12800, changeDate: '2023-11-15', expiryDate: '2025-11-15' }
+            ];
+            let iaqRecords = JSON.parse(localStorage.getItem('iaqRecords')) || [];
+            let filterPlans = JSON.parse(localStorage.getItem('filterPlans')) || [];
             let subMachines = JSON.parse(localStorage.getItem('subMachines')) || [];
             let pmRecords = JSON.parse(localStorage.getItem('pmRecords')) || [];
             let breakdownRecords = JSON.parse(localStorage.getItem('breakdownRecords')) || [];
             let partsRecords = JSON.parse(localStorage.getItem('partsRecords')) || [
-                { id: 101, machineId: 1, date: '2024-01-15', name: 'ไส้กรองน้ำมันเครื่อง', cost: 1200 },
-                { id: 102, machineId: 1, date: '2024-01-15', name: 'น้ำมันเครื่อง', cost: 4500 },
-                { id: 103, machineId: 1, date: '2024-07-20', name: 'แบตเตอรี่', cost: 3800 },
-                { id: 104, machineId: 1, date: '2024-07-20', name: 'ไส้กรองอากาศ', cost: 950 }
+                { id: 101, parentId: 1, date: '2024-01-15', name: 'ไส้กรองน้ำมันเครื่อง', cost: 1200 }, { id: 102, parentId: 1, date: '2024-01-15', name: 'น้ำมันเครื่อง', cost: 4500 },
+                { id: 103, parentId: 1, date: '2024-07-20', name: 'แบตเตอรี่', cost: 3800 }, { id: 104, parentId: 1, date: '2024-07-20', name: 'ไส้กรองอากาศ', cost: 950 }
             ];
             let noLoadTests = JSON.parse(localStorage.getItem('noLoadTests')) || [
-                { id: 201, machineId: 1, date: '2024-09-01', time: '10:00', temp: 85, fuel: 450 },
-                { id: 202, machineId: 1, date: '2024-09-08', time: '10:02', temp: 86, fuel: 448 },
-                { id: 203, machineId: 1, date: '2024-09-15', time: '10:01', temp: 85, fuel: 446 },
-                { id: 204, machineId: 1, date: '2024-09-22', time: '09:59', temp: 87, fuel: 444 }
+                { id: 201, parentId: 1, date: '2024-09-01', time: '10:00', temp: 85, fuel: 450 }, { id: 202, parentId: 1, date: '2024-09-08', time: '10:02', temp: 86, fuel: 448 },
+                { id: 203, parentId: 1, date: '2024-09-15', time: '10:01', temp: 85, fuel: 446 }, { id: 204, parentId: 1, date: '2024-09-22', time: '09:59', temp: 87, fuel: 444 }
             ];
             let onLoadRuns = JSON.parse(localStorage.getItem('onLoadRuns')) || [
-                { id: 301, machineId: 1, date: '2024-02-10', time: '14:00', fuelUsed: 25, loadPercent: 50 },
-                { id: 302, machineId: 1, date: '2024-05-15', time: '11:30', fuelUsed: 28, loadPercent: 60 },
-                { id: 303, machineId: 1, date: '2024-08-20', time: '13:00', fuelUsed: 40, loadPercent: 75 }
+                { id: 301, parentId: 1, date: '2024-02-10', time: '14:00', fuelUsed: 25, loadPercent: 50 }, { id: 302, parentId: 1, date: '2024-05-15', time: '11:30', fuelUsed: 28, loadPercent: 60 },
+                { id: 303, parentId: 1, date: '2024-08-20', time: '13:00', fuelUsed: 40, loadPercent: 75 }
             ];
             let dummyLoadTests = JSON.parse(localStorage.getItem('dummyLoadTests')) || [
-                 { id: 401, machineId: 1, date: '2023-12-25', result: 'ผ่าน, ระบบทำงานปกติ' },
-                 { id: 402, machineId: 1, date: '2024-12-20', result: 'รอทดสอบ' }
+                 { id: 401, parentId: 1, date: '2023-12-25', result: 'ผ่าน, ระบบทำงานปกติ' }, { id: 402, parentId: 1, date: '2024-12-20', result: 'รอทดสอบ' }
             ];
             let firepumpTestRuns = JSON.parse(localStorage.getItem('firepumpTestRuns')) || [];
             let pmPlan = JSON.parse(localStorage.getItem('pmPlan')) || [
-                { machineId: 1, months: [0, 6] }, { machineId: 2, months: [1, 7] }, { machineId: 3, months: [3, 9] }
+                { machineId: 1, months: [0, 6] }, { machineId: 2, months: [1, 7] }, { machineId: 3, months: [3, 9] }, { machineId: 4, months: [5, 11] }
             ];
             const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
             const saveData = () => {
-                localStorage.setItem('machines', JSON.stringify(machines));
-                localStorage.setItem('subMachines', JSON.stringify(subMachines));
-                localStorage.setItem('pmRecords', JSON.stringify(pmRecords));
-                localStorage.setItem('breakdownRecords', JSON.stringify(breakdownRecords));
-                localStorage.setItem('partsRecords', JSON.stringify(partsRecords));
-                localStorage.setItem('noLoadTests', JSON.stringify(noLoadTests));
-                localStorage.setItem('onLoadRuns', JSON.stringify(onLoadRuns));
-                localStorage.setItem('dummyLoadTests', JSON.stringify(dummyLoadTests));
-                localStorage.setItem('firepumpTestRuns', JSON.stringify(firepumpTestRuns));
-                localStorage.setItem('pmPlan', JSON.stringify(pmPlan));
+                const allData = { machines, subUnits, batteryPlans, iaqRecords, filterPlans, subMachines, pmRecords, breakdownRecords, partsRecords, noLoadTests, onLoadRuns, dummyLoadTests, firepumpTestRuns, pmPlan };
+                for (const key in allData) {
+                    localStorage.setItem(key, JSON.stringify(allData[key]));
+                }
             };
             
             // --- UI & UTILITY FUNCTIONS ---
@@ -234,13 +306,24 @@
                 document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
                 document.getElementById(pageId)?.classList.add('active');
                 document.querySelectorAll('.nav-link').forEach(l => {
-                    l.classList.toggle('active', l.getAttribute('href') === `#${pageId}`);
-                    l.classList.toggle('bg-blue-50', l.getAttribute('href') === `#${pageId}`);
-                    l.classList.toggle('text-blue-600', l.getAttribute('href') === `#${pageId}`);
+                    const isActive = l.getAttribute('href') === `#${pageId}` || (pageId.includes('detail') && l.getAttribute('href') === '#machine-selector');
+                    l.classList.toggle('active', isActive);
+                    l.classList.toggle('bg-blue-50', isActive);
+                    l.classList.toggle('text-blue-600', isActive);
                 });
+                 if (pageId === 'export-data') {
+                    renderExportSelect();
+                }
             };
 
             const getMachineById = (id) => machines.find(m => m.id === parseInt(id));
+            const getSubUnitById = (id) => {
+                for (const type in subUnits) {
+                    const unit = subUnits[type].find(u => u.id === parseInt(id));
+                    if (unit) return unit;
+                }
+                return null;
+            };
             const openModal = (modalId) => document.getElementById(modalId).classList.add('active');
             const closeModal = (modalId) => document.getElementById(modalId).classList.remove('active');
             const showToast = (message) => {
@@ -257,7 +340,7 @@
                 }
             };
 
-            // --- RENDERING FUNCTIONS ---
+            // --- RENDER FUNCTIONS ---
             const renderAll = () => {
                 renderOverallDashboard();
                 renderMachineSelector();
@@ -265,130 +348,126 @@
             };
 
             const renderOverallDashboard = () => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const currentYear = today.getFullYear();
-                const currentMonth = today.getMonth();
-
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                const currentYear = today.getFullYear(); const currentMonth = today.getMonth();
                 let allUpcomingAndOverdue = [];
-
                 machines.forEach(m => {
                     const plan = pmPlan.find(p => p.machineId === m.id);
                     if (!plan || plan.months.length === 0) return;
-
                     plan.months.forEach(month => {
-                        const existingRecordForCycle = pmRecords.find(r =>
-                            r.machineId === m.id &&
-                            new Date(r.pmDate).getFullYear() === currentYear &&
-                            new Date(r.pmDate).getMonth() === month
-                        );
-
+                        const existingRecordForCycle = pmRecords.find(r => r.parentId === m.id && new Date(r.pmDate).getFullYear() === currentYear && new Date(r.pmDate).getMonth() === month);
                         if (existingRecordForCycle) {
                             if (existingRecordForCycle.status === 'scheduled') {
-                                const scheduledDate = new Date(existingRecordForCycle.pmDate);
-                                scheduledDate.setHours(0,0,0,0);
-                                allUpcomingAndOverdue.push({
-                                    machine: m, date: scheduledDate, isUnscheduled: false,
-                                    isOverdue: scheduledDate < today, year: currentYear, month: month
-                                });
+                                const scheduledDate = new Date(existingRecordForCycle.pmDate); scheduledDate.setHours(0,0,0,0);
+                                allUpcomingAndOverdue.push({ machine: m, date: scheduledDate, isUnscheduled: false, isOverdue: scheduledDate < today, year: currentYear, month: month });
                             }
                         } else {
                             const lastDayOfMonth = new Date(currentYear, month + 1, 0);
                             const firstDayOfMonth = new Date(currentYear, month, 1);
                              if (month <= currentMonth) {
-                                allUpcomingAndOverdue.push({
-                                    machine: m, date: firstDayOfMonth, isUnscheduled: true,
-                                    isOverdue: lastDayOfMonth < today, year: currentYear, month: month
-                                });
+                                allUpcomingAndOverdue.push({ machine: m, date: firstDayOfMonth, isUnscheduled: true, isOverdue: lastDayOfMonth < today, year: currentYear, month: month });
                             }
                         }
                     });
                 });
-                
-                const displayList = allUpcomingAndOverdue
-                    .filter(item => item.isOverdue || (item.year === currentYear && item.month === currentMonth))
-                    .sort((a, b) => a.date - b.date);
-
+                const displayList = allUpcomingAndOverdue.filter(item => item.isOverdue || (item.year === currentYear && item.month === currentMonth)).sort((a, b) => a.date - b.date);
                 const overdueCount = displayList.filter(item => item.isOverdue).length;
-                const upcomingCount = displayList.length - overdueCount;
-
                 document.getElementById('total-machines').textContent = machines.length;
-                document.getElementById('upcoming-pm').textContent = upcomingCount;
+                document.getElementById('upcoming-pm').textContent = displayList.length - overdueCount;
                 document.getElementById('overdue-pm').textContent = overdueCount;
-
-                const costThisMonth = [...pmRecords, ...breakdownRecords, ...partsRecords]
-                    .filter(r => {
-                        const recordDate = new Date(r.pmDate || r.breakdownDate || r.date);
-                        return recordDate.getMonth() === today.getMonth() && recordDate.getFullYear() === today.getFullYear();
-                    })
-                    .reduce((sum, r) => sum + (r.cost || 0), 0);
+                const costThisMonth = [...pmRecords, ...breakdownRecords, ...partsRecords, ...batteryPlans].filter(r => { const recordDate = new Date(r.pmDate || r.breakdownDate || r.date || r.changeDate); return recordDate.getMonth() === today.getMonth() && recordDate.getFullYear() === today.getFullYear(); }).reduce((sum, r) => sum + (r.cost || r.price || 0), 0);
                 document.getElementById('cost-this-month').textContent = costThisMonth.toLocaleString();
-
                 const upcomingListContainer = document.getElementById('upcoming-pm-list');
                 upcomingListContainer.innerHTML = '';
                 if (displayList.length === 0) {
                     upcomingListContainer.innerHTML = `<p class="text-gray-500">ไม่มีรายการ</p>`;
                 } else {
                     displayList.forEach(item => {
-                        let dateText = '';
-                        let textColor = 'text-gray-600';
-                        if (item.isUnscheduled) {
-                            dateText = `${monthNames[item.month]}/${item.year}`;
-                            textColor = 'text-red-500 font-bold';
-                        } else {
-                            dateText = item.date.toLocaleDateString('th-TH');
-                            if (item.isOverdue) { textColor = 'text-red-500 font-bold'; }
-                        }
-                        upcomingListContainer.innerHTML += `
-                            <div class="flex justify-between items-center text-sm">
-                                <span>${item.machine.name}</span>
-                                <div class="flex items-center space-x-3">
-                                   <span class="${textColor}">${dateText}</span>
-                                   <button class="edit-schedule-btn text-blue-500 hover:text-blue-700" data-machine-id="${item.machine.id}" data-year="${item.year}" data-month="${item.month}">
-                                       <i class="fas fa-calendar-alt"></i>
-                                   </button>
-                                </div>
-                            </div>`;
+                        let dateText = item.isUnscheduled ? `${monthNames[item.month]}/${item.year}` : item.date.toLocaleDateString('th-TH');
+                        let textColor = item.isUnscheduled || item.isOverdue ? 'text-red-500 font-bold' : 'text-gray-600';
+                        upcomingListContainer.innerHTML += `<div class="flex justify-between items-center text-sm"><span>${item.machine.name}</span><div class="flex items-center space-x-3"><span class="${textColor}">${dateText}</span><button class="edit-schedule-btn text-blue-500 hover:text-blue-700" data-machine-id="${item.machine.id}" data-year="${item.year}" data-month="${item.month}"><i class="fas fa-calendar-alt"></i></button></div></div>`;
                     });
                 }
-                renderMonthlyCostChart();
-                renderPmPlan();
+                
+                const threeMonthsFromNow = new Date();
+                threeMonthsFromNow.setMonth(today.getMonth() + 3);
+                const batteryAlertList = batteryPlans.map(plan => ({ ...plan, expiryDateObj: new Date(plan.expiryDate) })).filter(plan => plan.expiryDateObj >= today && plan.expiryDateObj <= threeMonthsFromNow).sort((a, b) => a.expiryDateObj - b.expiryDateObj);
+                const batteryAlertContainer = document.getElementById('battery-alert-list');
+                batteryAlertContainer.innerHTML = '';
+                if (batteryAlertList.length === 0) {
+                    batteryAlertContainer.innerHTML = `<p class="text-gray-500">ไม่มีรายการ</p>`;
+                } else {
+                    batteryAlertList.forEach(plan => {
+                        const unit = getSubUnitById(plan.parentId);
+                        if (!unit) return;
+                        const machine = getMachineById(unit.parentId);
+                        const daysRemaining = Math.ceil((plan.expiryDateObj - today) / (1000 * 60 * 60 * 24));
+                        let textColor = daysRemaining <= 30 ? 'text-red-600 font-bold' : 'text-yellow-600';
+                        batteryAlertContainer.innerHTML += `<div class="flex justify-between items-center text-sm"><div><p class="font-semibold">${unit.name} (${machine.name})</p><p class="text-xs text-gray-500">${plan.size} x${plan.quantity}</p></div><div class="text-right"><p class="${textColor}">${plan.expiryDateObj.toLocaleDateString('th-TH')}</p><p class="text-xs ${textColor}">(${daysRemaining} วัน)</p></div></div>`;
+                    });
+                }
+                
+                const findParentName = (parentId) => {
+                    const machine = machines.find(m => m.id === parentId);
+                    if (machine) return machine.name;
+                    const unit = getSubUnitById(parentId);
+                    if (unit) return unit.name;
+                    return 'ไม่พบ';
+                };
+                const partsNeededAlerts = pmRecords.filter(r => r.needsParts && r.partsNeeded);
+                const partsAlertContainer = document.getElementById('parts-needed-alert-list');
+                partsAlertContainer.innerHTML = '';
+                if (partsNeededAlerts.length === 0) {
+                    partsAlertContainer.innerHTML = `<p class="text-gray-500">ไม่มีรายการ</p>`;
+                } else {
+                    partsNeededAlerts.forEach(record => {
+                        const parentName = findParentName(record.parentId);
+                        partsAlertContainer.innerHTML += `<div class="p-2 rounded-md bg-orange-50"><div class="flex justify-between items-start"><div class="text-sm"><p class="font-semibold">${parentName}</p><p class="text-xs text-gray-500">วันที่: ${new Date(record.pmDate).toLocaleDateString('th-TH')}</p><p class="text-red-600 pl-2 border-l-2 border-red-500 mt-1">${record.partsNeeded}</p></div><button class="update-parts-needed-btn text-xs bg-green-100 text-green-800 px-2 py-1 rounded hover:bg-green-200" data-pm-id="${record.id}">Update</button></div></div>`;
+                    });
+                }
+
+                const iaqAlerts = iaqRecords.filter(r => r.status === 'open' && r.result === 'fail');
+                const iaqAlertContainer = document.getElementById('iaq-alert-list');
+                iaqAlertContainer.innerHTML = '';
+                if(iaqAlerts.length === 0) {
+                     iaqAlertContainer.innerHTML = `<p class="text-gray-500">ไม่มีรายการ</p>`;
+                } else {
+                    iaqAlerts.forEach(record => {
+                        const parentName = findParentName(record.parentId);
+                        iaqAlertContainer.innerHTML += `<div class="p-2 rounded-md bg-red-50"><div class="flex justify-between items-start"><div class="text-sm"><p class="font-semibold">${parentName}</p><p class="text-xs text-gray-500">วันที่: ${new Date(record.date).toLocaleDateString('th-TH')}</p><p class="text-red-600 pl-2 border-l-2 border-red-500 mt-1">${record.failedParams}</p></div><button class="update-iaq-btn text-xs bg-green-100 text-green-800 px-2 py-1 rounded hover:bg-green-200" data-iaq-id="${record.id}">Update</button></div></div>`;
+                    });
+                }
+                
+                const thirtyDaysFromNow = new Date(); thirtyDaysFromNow.setDate(today.getDate() + 30);
+                const filterAlerts = filterPlans.filter(plan => {
+                    const planDate = new Date(currentYear, plan.month, 1);
+                    return planDate >= today && planDate <= thirtyDaysFromNow;
+                });
+                const filterAlertContainer = document.getElementById('filter-alert-list');
+                filterAlertContainer.innerHTML = '';
+                if(filterAlerts.length === 0) {
+                     filterAlertContainer.innerHTML = `<p class="text-gray-500">ไม่มีรายการ</p>`;
+                } else {
+                    filterAlerts.forEach(plan => {
+                         const parentName = findParentName(plan.parentId);
+                         filterAlertContainer.innerHTML += `<div class="flex justify-between items-center text-sm"><div><p class="font-semibold">${parentName}</p><p class="text-xs text-gray-500">ขนาด: ${plan.size}</p></div><p class="font-bold text-yellow-600">${monthNames[plan.month]}/${currentYear}</p></div>`;
+                    });
+                }
+
+                renderMonthlyCostChart(); renderPmPlan();
             };
             
             const renderMonthlyCostChart = () => {
                 const year = new Date().getFullYear();
                 document.getElementById('current-year-chart').textContent = year;
-                
                 destroyChart('monthlyCost');
                 const ctx = document.getElementById('monthly-cost-chart').getContext('2d');
-                
                 const monthlyCosts = Array(12).fill(0);
-                [...pmRecords, ...breakdownRecords, ...partsRecords].forEach(r => {
-                    const recordDate = new Date(r.pmDate || r.breakdownDate || r.date);
-                    if (recordDate.getFullYear() === year) {
-                        monthlyCosts[recordDate.getMonth()] += (r.cost || 0);
-                    }
+                [...pmRecords, ...breakdownRecords, ...partsRecords, ...batteryPlans, ...filterPlans].forEach(r => {
+                    const recordDate = new Date(r.pmDate || r.breakdownDate || r.date || r.changeDate);
+                    if (recordDate.getFullYear() === year) { monthlyCosts[recordDate.getMonth()] += (r.cost || r.price || 0); }
                 });
-
-                charts['monthlyCost'] = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: monthNames,
-                        datasets: [{
-                            label: 'ค่าใช้จ่ายรวม',
-                            data: monthlyCosts,
-                            backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                            borderColor: 'rgba(59, 130, 246, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: { y: { beginAtZero: true } },
-                        plugins: { legend: { display: false } }
-                    }
-                });
+                charts['monthlyCost'] = new Chart(ctx, { type: 'bar', data: { labels: monthNames, datasets: [{ label: 'ค่าใช้จ่ายรวม', data: monthlyCosts, backgroundColor: 'rgba(59, 130, 246, 0.5)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } } });
             };
 
             const renderPmPlan = () => {
@@ -398,10 +477,7 @@
                 tableBody.innerHTML = '';
                 machines.forEach(machine => {
                     const plan = pmPlan.find(p => p.machineId === machine.id);
-                    let cells = '';
-                    for (let i = 0; i < 12; i++) {
-                        cells += `<td class="py-2 px-2 border text-center">${(plan && plan.months.includes(i)) ? '<span class="pm-due"></span>' : ''}</td>`;
-                    }
+                    let cells = Array(12).fill('').map((_, i) => `<td class="py-2 px-2 border text-center">${(plan && plan.months.includes(i)) ? '<span class="pm-due"></span>' : ''}</td>`).join('');
                     tableBody.innerHTML += `<tr class="hover:bg-gray-50"><td class="py-2 px-4 border font-medium">${machine.name}</td>${cells}</tr>`;
                 });
             };
@@ -422,163 +498,185 @@
                 const machine = getMachineById(machineId);
                 if (!machine) return;
                 document.getElementById('current-machine-id').value = machineId;
-                ['name', 'location', 'brand', 'model', 'serial'].forEach(key => {
-                    document.getElementById(`detail-machine-${key}`).textContent = machine[key];
-                });
+                ['name', 'location', 'brand', 'model', 'serial'].forEach(key => { document.getElementById(`detail-machine-${key}`).textContent = machine[key]; });
 
-                document.getElementById('generator-specifics').classList.add('hidden');
-                document.getElementById('firepump-specifics').classList.add('hidden');
+                const contentContainer = document.getElementById('machine-detail-content');
+                contentContainer.innerHTML = ''; 
+                const editButton = document.getElementById('edit-machine-detail-btn');
+                const infoGrid = document.getElementById('detail-machine-info-grid');
 
-                if (machine.type === 'generator') {
-                    document.getElementById('generator-specifics').classList.remove('hidden');
+                if (['ups', 'elevator', 'chiller', 'or_hvac'].includes(machine.type)) {
+                    contentContainer.innerHTML = document.getElementById('system-machine-template').innerHTML;
+                    renderSubUnits(machineId, machine.type);
+                    editButton.classList.add('hidden');
+                    infoGrid.classList.add('hidden');
+                } else {
+                    contentContainer.innerHTML = document.getElementById('standalone-machine-template').innerHTML;
+                    const specificsContainer = document.getElementById('standalone-specifics-container');
+                    specificsContainer.innerHTML = '';
+                    if (machine.type === 'generator') {
+                        specificsContainer.innerHTML = document.getElementById('generator-specifics-template').innerHTML;
+                        renderNoLoadTests(machineId);
+                        renderOnLoadRuns(machineId);
+                        renderDummyLoadTests(machineId);
+                        renderPartsCostChart(machineId);
+                        renderNoLoadChart(machineId);
+                        renderOnLoadChart(machineId);
+                    } else if (machine.type === 'firepump') {
+                         specificsContainer.innerHTML = document.getElementById('firepump-specifics-template').innerHTML;
+                         renderFirepumpTestRuns(machineId);
+                    } else if (machine.type === 'water_filter') {
+                        specificsContainer.innerHTML = document.getElementById('water-filter-specifics-template').innerHTML;
+                        renderFilterPlans(machineId);
+                    }
+                    renderPmRecords(machineId, 'pm-records-table');
+                    renderBreakdownRecords(machineId, 'breakdown-records-table');
+                    renderSubMachines(machineId, 'sub-machines-table');
                     renderPartsRecords(machineId, 'parts-records-table');
-                    renderNoLoadTests(machineId);
-                    renderOnLoadRuns(machineId);
-                    renderDummyLoadTests(machineId);
-                    // Render charts for generator
-                    renderPartsCostChart(machineId);
-                    renderNoLoadChart(machineId);
-                    renderOnLoadChart(machineId);
-                } else if (machine.type === 'firepump') {
-                    document.getElementById('firepump-specifics').classList.remove('hidden');
-                    renderPartsRecords(machineId, 'fp-parts-records-table');
-                    renderFirepumpTestRuns(machineId);
+                    editButton.classList.remove('hidden');
+                    infoGrid.classList.remove('hidden');
                 }
                 
-                renderSubMachines(machineId);
-                renderPmRecords(machineId);
-                renderBreakdownRecords(machineId);
                 showPage('machine-detail');
+            };
+            
+            const showSubUnitDetailPage = (subUnitId) => {
+                const unit = getSubUnitById(subUnitId);
+                if(!unit) return;
+                const machine = getMachineById(unit.parentId);
+
+                document.getElementById('current-sub-unit-id').value = subUnitId;
+                ['name', 'location', 'brand', 'model', 'serial'].forEach(key => {
+                    document.getElementById(`detail-sub-unit-${key}`).textContent = unit[key] || '-';
+                });
+                
+                const contentContainer = document.getElementById('sub-unit-detail-content');
+                contentContainer.innerHTML = document.getElementById('sub-unit-main-history-template').innerHTML;
+                
+                const specificsContainer = document.getElementById('sub-unit-specifics-container');
+                specificsContainer.innerHTML = '';
+
+                if(machine.type === 'ups'){
+                    specificsContainer.innerHTML = document.getElementById('ups-specifics-template').innerHTML;
+                    renderBatteryPlans(subUnitId);
+                } else if(machine.type === 'or_hvac'){
+                    specificsContainer.innerHTML = document.getElementById('or-hvac-specifics-template').innerHTML;
+                    renderIaqRecords(subUnitId);
+                }
+
+                renderPmRecords(subUnitId, 'pm-records-table');
+                renderBreakdownRecords(subUnitId, 'breakdown-records-table');
+                renderSubMachines(subUnitId, 'sub-machines-table');
+                renderPartsRecords(subUnitId, 'parts-records-table');
+                showPage('sub-unit-detail');
+            };
+            
+            const renderExportSelect = () => {
+                const select = document.getElementById('export-machine-select');
+                select.innerHTML = '<option value="">-- กรุณาเลือก --</option>';
+                machines.forEach(m => {
+                    select.innerHTML += `<option value="machine-${m.id}">ระบบ: ${m.name}</option>`;
+                    if(['ups', 'elevator', 'chiller', 'or_hvac'].includes(m.type)){
+                        const units = subUnits[m.type] || [];
+                        units.filter(u => u.parentId === m.id).forEach(u => {
+                            select.innerHTML += `<option value="unit-${u.id}">&nbsp;&nbsp;&nbsp;Unit: ${u.name}</option>`;
+                        });
+                    }
+                });
+                document.getElementById('export-buttons-container').innerHTML = '';
             };
 
             // --- CHART RENDERERS ---
-            const renderPartsCostChart = (machineId) => {
+            const renderPartsCostChart = (parentId) => {
                 destroyChart('partsCost');
                 const ctx = document.getElementById('parts-cost-chart').getContext('2d');
-                const data = partsRecords.filter(r => r.machineId === machineId).sort((a,b) => new Date(a.date) - new Date(b.date));
-                charts['partsCost'] = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.map(r => `${new Date(r.date).toLocaleDateString('th-TH')} (${r.name})`),
-                        datasets: [{
-                            label: 'ค่าใช้จ่าย (บาท)',
-                            data: data.map(r => r.cost),
-                            backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                            borderColor: 'rgba(239, 68, 68, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: { responsive: true, plugins: { legend: { display: false } } }
-                });
+                const data = partsRecords.filter(r => r.parentId === parentId).sort((a,b) => new Date(a.date) - new Date(b.date));
+                charts['partsCost'] = new Chart(ctx, { type: 'bar', data: { labels: data.map(r => `${new Date(r.date).toLocaleDateString('th-TH')} (${r.name})`), datasets: [{ label: 'ค่าใช้จ่าย (บาท)', data: data.map(r => r.cost), backgroundColor: 'rgba(239, 68, 68, 0.5)', borderColor: 'rgba(239, 68, 68, 1)', borderWidth: 1 }] }, options: { responsive: true, plugins: { legend: { display: false } } } });
             };
-
-            const renderNoLoadChart = (machineId) => {
+            const renderNoLoadChart = (parentId) => {
                 destroyChart('noLoad');
                 const ctx = document.getElementById('no-load-chart').getContext('2d');
-                const data = noLoadTests.filter(r => r.machineId === machineId).sort((a,b) => new Date(a.date) - new Date(b.date));
-                charts['noLoad'] = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.map(r => new Date(r.date).toLocaleDateString('th-TH')),
-                        datasets: [
-                            {
-                                label: 'อุณหภูมิ (°C)',
-                                data: data.map(r => r.temp),
-                                borderColor: 'rgba(234, 179, 8, 1)',
-                                yAxisID: 'y'
-                            },
-                            {
-                                label: 'น้ำมันคงเหลือ (L)',
-                                data: data.map(r => r.fuel),
-                                borderColor: 'rgba(34, 197, 94, 1)',
-                                yAxisID: 'y1'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'อุณหภูมิ (°C)'} },
-                            y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'น้ำมัน (L)'}, grid: { drawOnChartArea: false } }
-                        }
-                    }
-                });
+                const data = noLoadTests.filter(r => r.parentId === parentId).sort((a,b) => new Date(a.date) - new Date(b.date));
+                charts['noLoad'] = new Chart(ctx, { type: 'line', data: { labels: data.map(r => new Date(r.date).toLocaleDateString('th-TH')), datasets: [ { label: 'อุณหภูมิ (°C)', data: data.map(r => r.temp), borderColor: 'rgba(234, 179, 8, 1)', yAxisID: 'y' }, { label: 'น้ำมันคงเหลือ (L)', data: data.map(r => r.fuel), borderColor: 'rgba(34, 197, 94, 1)', yAxisID: 'y1' } ] }, options: { responsive: true, scales: { y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'อุณหภูมิ (°C)'} }, y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'น้ำมัน (L)'}, grid: { drawOnChartArea: false } } } } });
             };
-            
-            const renderOnLoadChart = (machineId) => {
+            const renderOnLoadChart = (parentId) => {
                 destroyChart('onLoad');
                 const ctx = document.getElementById('on-load-chart').getContext('2d');
-                const data = onLoadRuns.filter(r => r.machineId === machineId).sort((a,b) => new Date(a.date) - new Date(b.date));
-                charts['onLoad'] = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.map(r => new Date(r.date).toLocaleDateString('th-TH')),
-                        datasets: [
-                            {
-                                label: 'น้ำมันที่ใช้ (L)',
-                                data: data.map(r => r.fuelUsed),
-                                backgroundColor: 'rgba(139, 92, 246, 0.5)',
-                                borderColor: 'rgba(139, 92, 246, 1)'
-                            },
-                            {
-                                label: '% Load',
-                                data: data.map(r => r.loadPercent),
-                                type: 'line',
-                                borderColor: 'rgba(249, 115, 22, 1)',
-                                yAxisID: 'y1'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'น้ำมัน (L)'} },
-                            y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: '% Load'}, grid: { drawOnChartArea: false } }
-                        }
-                    }
-                });
+                const data = onLoadRuns.filter(r => r.parentId === parentId).sort((a,b) => new Date(a.date) - new Date(b.date));
+                charts['onLoad'] = new Chart(ctx, { type: 'bar', data: { labels: data.map(r => new Date(r.date).toLocaleDateString('th-TH')), datasets: [ { label: 'น้ำมันที่ใช้ (L)', data: data.map(r => r.fuelUsed), backgroundColor: 'rgba(139, 92, 246, 0.5)', borderColor: 'rgba(139, 92, 246, 1)' }, { label: '% Load', data: data.map(r => r.loadPercent), type: 'line', borderColor: 'rgba(249, 115, 22, 1)', yAxisID: 'y1' } ] }, options: { responsive: true, scales: { y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'น้ำมัน (L)'} }, y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: '% Load'}, grid: { drawOnChartArea: false } } } } });
             };
 
-            // --- SPECIFIC & GENERIC TABLE RENDERERS ---
-            const renderSubMachines = (mainMachineId) => {
-                const tableBody = document.getElementById('sub-machines-table');
-                tableBody.innerHTML = '';
-                subMachines.filter(sm => sm.mainMachineId === mainMachineId).forEach(sm => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${sm.name}</td><td class="py-2 px-4">${sm.details}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${sm.id}" data-type="subMachine"><i class="fas fa-trash"></i></button></td></tr>`; });
-            };
-            const renderPmRecords = (machineId) => {
-                const tableBody = document.getElementById('pm-records-table');
-                tableBody.innerHTML = '';
-                pmRecords.filter(r => r.machineId === machineId && r.status === 'completed').sort((a,b) => new Date(b.pmDate) - new Date(a.pmDate)).forEach(r => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.pmDate).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.technician}</td><td class="py-2 px-4">${r.cost.toLocaleString()}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="pmRecord"><i class="fas fa-trash"></i></button></td></tr>`; });
-            };
-            const renderBreakdownRecords = (machineId) => {
-                const tableBody = document.getElementById('breakdown-records-table');
-                tableBody.innerHTML = '';
-                breakdownRecords.filter(r => r.machineId === machineId).sort((a,b) => new Date(b.breakdownDate) - new Date(a.breakdownDate)).forEach(r => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.breakdownDate).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.problem}</td><td class="py-2 px-4">${r.cost.toLocaleString()}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="breakdownRecord"><i class="fas fa-trash"></i></button></td></tr>`; });
-            };
-             const renderPartsRecords = (machineId, tableId) => {
+            // --- TABLE RENDERERS ---
+            const renderSubMachines = (parentId, tableId) => {
                 const tableBody = document.getElementById(tableId);
                 tableBody.innerHTML = '';
-                partsRecords.filter(r => r.machineId === machineId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.date).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.name}</td><td class="py-2 px-4">${r.cost.toLocaleString()}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="partsRecord"><i class="fas fa-trash"></i></button></td></tr>`; });
+                subMachines.filter(sm => sm.parentId === parentId).forEach(sm => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${sm.name}</td><td class="py-2 px-4">${sm.details}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${sm.id}" data-type="subMachine"><i class="fas fa-trash"></i></button></td></tr>`; });
             };
-            const renderNoLoadTests = (machineId) => {
+            const renderPmRecords = (parentId, tableId) => {
+                const tableBody = document.getElementById(tableId);
+                tableBody.innerHTML = '';
+                pmRecords.filter(r => r.parentId === parentId && r.status === 'completed').sort((a,b) => new Date(b.pmDate) - new Date(a.pmDate)).forEach(r => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.pmDate).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.technician}</td><td class="py-2 px-4">${r.cost.toLocaleString()}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="pmRecord"><i class="fas fa-trash"></i></button></td></tr>`; });
+            };
+            const renderBreakdownRecords = (parentId, tableId) => {
+                const tableBody = document.getElementById(tableId);
+                tableBody.innerHTML = '';
+                breakdownRecords.filter(r => r.parentId === parentId).sort((a,b) => new Date(b.breakdownDate) - new Date(a.breakdownDate)).forEach(r => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.breakdownDate).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.problem}</td><td class="py-2 px-4">${r.cost.toLocaleString()}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="breakdownRecord"><i class="fas fa-trash"></i></button></td></tr>`; });
+            };
+             const renderPartsRecords = (parentId, tableId) => {
+                const tableBody = document.getElementById(tableId);
+                tableBody.innerHTML = '';
+                partsRecords.filter(r => r.parentId === parentId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.date).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.name}</td><td class="py-2 px-4">${r.cost.toLocaleString()}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="partsRecord"><i class="fas fa-trash"></i></button></td></tr>`; });
+            };
+            const renderNoLoadTests = (parentId) => {
                 const tableBody = document.getElementById('no-load-tests-table');
                 tableBody.innerHTML = '';
-                noLoadTests.filter(r => r.machineId === machineId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b text-sm"><td class="py-2 px-2">${new Date(r.date).toLocaleDateString('th-TH')} ${r.time}</td><td class="py-2 px-2">${r.temp}°C</td><td class="py-2 px-2">${r.fuel} L</td><td class="py-2 px-2 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="noLoadTest"><i class="fas fa-trash"></i></button></td></tr>`; });
+                noLoadTests.filter(r => r.parentId === parentId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b text-sm"><td class="py-2 px-2">${new Date(r.date).toLocaleDateString('th-TH')} ${r.time}</td><td class="py-2 px-2">${r.temp}°C</td><td class="py-2 px-2">${r.fuel} L</td><td class="py-2 px-2 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="noLoadTest"><i class="fas fa-trash"></i></button></td></tr>`; });
             };
-            const renderOnLoadRuns = (machineId) => {
+            const renderOnLoadRuns = (parentId) => {
                 const tableBody = document.getElementById('on-load-runs-table');
                 tableBody.innerHTML = '';
-                onLoadRuns.filter(r => r.machineId === machineId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b text-sm"><td class="py-2 px-2">${new Date(r.date).toLocaleDateString('th-TH')} ${r.time}</td><td class="py-2 px-2">${r.fuelUsed} L</td><td class="py-2 px-2">${r.loadPercent}%</td><td class="py-2 px-2 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="onLoadRun"><i class="fas fa-trash"></i></button></td></tr>`; });
+                onLoadRuns.filter(r => r.parentId === parentId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b text-sm"><td class="py-2 px-2">${new Date(r.date).toLocaleDateString('th-TH')} ${r.time}</td><td class="py-2 px-2">${r.fuelUsed} L</td><td class="py-2 px-2">${r.loadPercent}%</td><td class="py-2 px-2 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="onLoadRun"><i class="fas fa-trash"></i></button></td></tr>`; });
             };
-            const renderDummyLoadTests = (machineId) => {
+            const renderDummyLoadTests = (parentId) => {
                 const tableBody = document.getElementById('dummy-load-tests-table');
                 tableBody.innerHTML = '';
-                dummyLoadTests.filter(r => r.machineId === machineId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.date).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.result}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="dummyLoadTest"><i class="fas fa-trash"></i></button></td></tr>`; });
+                dummyLoadTests.filter(r => r.parentId === parentId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b"><td class="py-2 px-4">${new Date(r.date).toLocaleDateString('th-TH')}</td><td class="py-2 px-4">${r.result}</td><td class="py-2 px-4 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="dummyLoadTest"><i class="fas fa-trash"></i></button></td></tr>`; });
             };
-            const renderFirepumpTestRuns = (machineId) => {
+            const renderFirepumpTestRuns = (parentId) => {
                 const tableBody = document.getElementById('firepump-test-runs-table');
                 tableBody.innerHTML = '';
-                firepumpTestRuns.filter(r => r.machineId === machineId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b text-sm"><td class="py-2 px-2">${new Date(r.date).toLocaleDateString('th-TH')} ${r.time}</td><td class="py-2 px-2">${r.fuel} L</td><td class="py-2 px-2">${r.pressure} bar</td><td class="py-2 px-2 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="firepumpTestRun"><i class="fas fa-trash"></i></button></td></tr>`; });
+                firepumpTestRuns.filter(r => r.parentId === parentId).sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => { tableBody.innerHTML += `<tr class="border-b text-sm"><td class="py-2 px-2">${new Date(r.date).toLocaleDateString('th-TH')} ${r.time}</td><td class="py-2 px-2">${r.fuel} L</td><td class="py-2 px-2">${r.pressure} bar</td><td class="py-2 px-2 text-right"><button class="delete-btn text-red-500" data-id="${r.id}" data-type="firepumpTestRun"><i class="fas fa-trash"></i></button></td></tr>`; });
+            };
+            const renderSubUnits = (parentId, type) => {
+                const tableBody = document.getElementById('sub-units-table');
+                tableBody.innerHTML = '';
+                const units = subUnits[type] || [];
+                units.filter(u => u.parentId === parentId).forEach(unit => { tableBody.innerHTML += `<tr class="border-b"><td class="py-3 px-4 clickable-row" data-sub-unit-id="${unit.id}">${unit.name}</td><td class="py-3 px-4 clickable-row" data-sub-unit-id="${unit.id}">${unit.location}</td><td class="py-3 px-4 text-right"><button class="edit-sub-unit-btn text-blue-500 mr-2" data-sub-unit-id="${unit.id}" data-unit-type="${type}"><i class="fas fa-edit"></i></button><button class="delete-btn text-red-500" data-id="${unit.id}" data-type="${type}Unit"><i class="fas fa-trash"></i></button></td></tr>`; });
+            };
+            const renderBatteryPlans = (parentId) => {
+                const tableBody = document.getElementById('battery-plans-table');
+                tableBody.innerHTML = '';
+                batteryPlans.filter(p => p.parentId === parentId).forEach(plan => { 
+                    const expiryDate = new Date(plan.expiryDate);
+                    const isSoon = (expiryDate - new Date()) / (1000 * 60 * 60 * 24) < 90;
+                    const expiryColor = isSoon ? 'text-red-600 font-bold' : '';
+                    tableBody.innerHTML += `<tr class="border-b text-sm"><td class="py-2 px-2">${plan.size}</td><td class="py-2 px-2">${plan.quantity}</td><td class="py-2 px-2">${plan.price.toLocaleString()}</td><td class="py-2 px-2">${new Date(plan.changeDate).toLocaleDateString('th-TH')}</td><td class="py-2 px-2 ${expiryColor}">${expiryDate.toLocaleDateString('th-TH')}</td><td class="py-2 px-2 text-right"><button class="delete-btn text-red-500" data-id="${plan.id}" data-type="batteryPlan"><i class="fas fa-trash"></i></button></td></tr>`; 
+                });
+            };
+             const renderIaqRecords = (parentId) => {
+                const tableBody = document.getElementById('iaq-records-table');
+                tableBody.innerHTML = '';
+                iaqRecords.filter(r => r.parentId === parentId).sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(record => {
+                    const resultColor = record.result === 'fail' ? 'text-red-500' : 'text-green-500';
+                    tableBody.innerHTML += `<tr class="border-b text-sm"><td class="py-2 px-2">${new Date(record.date).toLocaleDateString('th-TH')}</td><td class="py-2 px-2 font-bold ${resultColor}">${record.result.toUpperCase()}</td><td class="py-2 px-2">${record.failedParams || '-'}</td><td class="py-2 px-2 text-right"><button class="delete-btn text-red-500" data-id="${record.id}" data-type="iaqRecord"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
+            };
+             const renderFilterPlans = (parentId) => {
+                const tableBody = document.getElementById('filter-plans-table');
+                tableBody.innerHTML = '';
+                filterPlans.filter(p => p.parentId === parentId).forEach(plan => {
+                    tableBody.innerHTML += `<tr class="border-b text-sm"><td class="py-2 px-2">${plan.size}</td><td class="py-2 px-2">${monthNames[plan.month]}</td><td class="py-2 px-2 text-right"><button class="delete-btn text-red-500" data-id="${plan.id}" data-type="filterPlan"><i class="fas fa-trash"></i></button></td></tr>`;
+                });
             };
 
             const populatePmMonthsCheckboxes = (machineId = null) => {
@@ -586,19 +684,18 @@
                 container.innerHTML = '';
                 const plan = machineId ? pmPlan.find(p => p.machineId === machineId) : null;
                 const selectedMonths = plan ? plan.months : [];
-                monthNames.forEach((month, index) => {
-                    container.innerHTML += `<label class="flex items-center space-x-2"><input type="checkbox" value="${index}" class="pm-month-cb" ${selectedMonths.includes(index) ? 'checked' : ''}><span>${month}</span></label>`;
-                });
+                monthNames.forEach((month, index) => { container.innerHTML += `<label class="flex items-center space-x-2"><input type="checkbox" value="${index}" class="pm-month-cb" ${selectedMonths.includes(index) ? 'checked' : ''}><span>${month}</span></label>`; });
             };
 
             // --- EVENT LISTENERS ---
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(l => l.addEventListener('click', e => { e.preventDefault(); showPage(l.getAttribute('href').substring(1)); }));
+            document.querySelectorAll('.nav-link').forEach(l => l.addEventListener('click', e => { e.preventDefault(); showPage(l.getAttribute('href').substring(1)); }));
             document.getElementById('back-to-selector-btn').addEventListener('click', () => showPage('machine-selector'));
-            document.getElementById('machine-cards-grid').addEventListener('click', e => {
-                const card = e.target.closest('.machine-card');
-                if (card) showMachineDetailPage(parseInt(card.dataset.machineId));
+            document.getElementById('back-to-machine-detail-btn').addEventListener('click', () => {
+                const currentUnitId = parseInt(document.getElementById('current-sub-unit-id').value);
+                const unit = getSubUnitById(currentUnitId);
+                showMachineDetailPage(unit.parentId);
             });
+            document.getElementById('machine-cards-grid').addEventListener('click', e => { const card = e.target.closest('.machine-card'); if (card) showMachineDetailPage(parseInt(card.dataset.machineId)); });
             document.getElementById('edit-machine-detail-btn').addEventListener('click', () => {
                 const machineId = parseInt(document.getElementById('current-machine-id').value);
                 const machine = getMachineById(machineId);
@@ -610,23 +707,78 @@
                     if(input) input.value = machine[key];
                 });
                 document.getElementById('machine-id').value = machine.id;
-                populatePmMonthsCheckboxes(machine.id);
                 openModal('machine-modal');
             });
-            document.getElementById('machine-detail').addEventListener('click', (e) => {
-                const buttonIdMap = {
-                    'add-pm-record-btn': 'pm-record-modal', 'add-breakdown-btn': 'breakdown-record-modal', 'add-sub-machine-btn': 'sub-machine-modal',
-                    'add-parts-record-btn': 'parts-record-modal', 'add-fp-parts-record-btn': 'parts-record-modal', 'add-no-load-test-btn': 'no-load-test-modal',
-                    'add-on-load-run-btn': 'on-load-run-modal', 'add-dummy-load-test-btn': 'dummy-load-test-modal', 'add-firepump-test-run-btn': 'firepump-test-run-modal'
-                };
-                const btn = e.target.closest('button');
-                if (btn && buttonIdMap[btn.id]) {
-                    const modalId = buttonIdMap[btn.id];
-                    const form = document.getElementById(modalId).querySelector('form');
-                    if (form) form.reset();
-                    const dateInput = form.querySelector('input[type="date"]');
-                    if(dateInput) dateInput.valueAsDate = new Date();
+            document.getElementById('adjust-pm-plan-btn').addEventListener('click', () => {
+                const machineId = parseInt(document.getElementById('current-machine-id').value);
+                const machine = getMachineById(machineId);
+                if(!machine) return;
+                document.getElementById('pm-plan-modal-title').textContent = `ปรับแผน PM: ${machine.name}`;
+                populatePmMonthsCheckboxes(machineId);
+                openModal('pm-plan-modal');
+            });
+            document.body.addEventListener('click', (e) => {
+                const addBtn = e.target.closest('.add-record-btn');
+                if (addBtn) {
+                    const modalId = addBtn.dataset.modal;
+                    const form = document.getElementById(modalId)?.querySelector('form');
+                    if(form) form.reset();
+                    const dateInput = form ? form.querySelector('input[type="date"]') : null;
+                    if (dateInput) dateInput.valueAsDate = new Date();
+                    if(modalId === 'filter-plan-modal'){
+                        const select = document.getElementById('filter-month');
+                        select.innerHTML = '';
+                        monthNames.forEach((name, index) => {
+                            select.innerHTML += `<option value="${index}">${name}</option>`;
+                        });
+                    }
+                    if(modalId === 'sub-unit-modal'){
+                        document.getElementById('sub-unit-modal-title').textContent = "เพิ่ม Unit";
+                        document.getElementById('sub-unit-id').value = '';
+                    }
                     openModal(modalId);
+                }
+                const subUnitRow = e.target.closest('.clickable-row');
+                if (subUnitRow && subUnitRow.dataset.subUnitId) {
+                    showSubUnitDetailPage(parseInt(subUnitRow.dataset.subUnitId));
+                }
+                const editSubUnitBtn = e.target.closest('.edit-sub-unit-btn');
+                if (editSubUnitBtn) {
+                    const subUnitId = parseInt(editSubUnitBtn.dataset.subUnitId);
+                    const unit = getSubUnitById(subUnitId);
+                    if(unit) {
+                        document.getElementById('sub-unit-modal-title').textContent = "แก้ไข Unit";
+                        document.getElementById('sub-unit-id').value = unit.id;
+                        document.getElementById('sub-unit-name').value = unit.name;
+                        document.getElementById('sub-unit-location').value = unit.location;
+                        document.getElementById('sub-unit-brand').value = unit.brand || '';
+                        document.getElementById('sub-unit-model').value = unit.model || '';
+                        document.getElementById('sub-unit-serial').value = unit.serial || '';
+                        document.getElementById('sub-unit-size').value = unit.size || '';
+                        openModal('sub-unit-modal');
+                    }
+                }
+                const updatePartsBtn = e.target.closest('.update-parts-needed-btn');
+                if (updatePartsBtn) {
+                    const pmId = parseInt(updatePartsBtn.dataset.pmId);
+                    const record = pmRecords.find(r => r.id === pmId);
+                    if (record) {
+                        record.needsParts = false;
+                        saveData();
+                        renderOverallDashboard();
+                        showToast('อัปเดตรายการอะไหล่แล้ว');
+                    }
+                }
+                const updateIaqBtn = e.target.closest('.update-iaq-btn');
+                if (updateIaqBtn) {
+                    const iaqId = parseInt(updateIaqBtn.dataset.iaqId);
+                    const record = iaqRecords.find(r => r.id === iaqId);
+                    if (record) {
+                        record.status = 'closed';
+                        saveData();
+                        renderOverallDashboard();
+                        showToast('อัปเดตผล IAQ แล้ว');
+                    }
                 }
             });
             
@@ -640,114 +792,296 @@
                     document.getElementById('schedule-machine-id').value = machineId;
                     document.getElementById('schedule-year').value = year;
                     document.getElementById('schedule-month').value = month;
-                    const existingRecord = pmRecords.find(r => r.machineId === parseInt(machineId) && r.status === 'scheduled' && new Date(r.pmDate).getFullYear() === parseInt(year) && new Date(r.pmDate).getMonth() === parseInt(month));
-                    const dateInput = document.getElementById('schedule-pm-date');
-                    dateInput.value = existingRecord ? existingRecord.pmDate : new Date(year, month, 15).toISOString().split('T')[0];
+                    const existingRecord = pmRecords.find(r => r.parentId === parseInt(machineId) && r.status === 'scheduled' && new Date(r.pmDate).getFullYear() === parseInt(year) && new Date(r.pmDate).getMonth() === parseInt(month));
+                    document.getElementById('schedule-pm-date').value = existingRecord ? existingRecord.pmDate : new Date(year, month, 15).toISOString().split('T')[0];
                     openModal('schedule-pm-modal');
                 }
             });
             
-            // FORM SUBMISSIONS
+            // --- FORM SUBMISSIONS ---
             document.getElementById('schedule-pm-form').addEventListener('submit', e => {
                 e.preventDefault();
                 const machineId = parseInt(document.getElementById('schedule-machine-id').value);
                 const year = parseInt(document.getElementById('schedule-year').value);
                 const month = parseInt(document.getElementById('schedule-month').value);
                 const scheduledDate = document.getElementById('schedule-pm-date').value;
-                const existingRecord = pmRecords.find(r => r.machineId === machineId && r.status === 'scheduled' && new Date(r.pmDate).getFullYear() === year && new Date(r.pmDate).getMonth() === month);
-                if (existingRecord) {
-                    existingRecord.pmDate = scheduledDate;
-                } else {
-                    pmRecords.push({ id: Date.now(), machineId, pmDate: scheduledDate, technician: 'N/A', details: 'PM ตามกำหนด', cost: 0, status: 'scheduled' });
-                }
+                const existingRecord = pmRecords.find(r => r.parentId === machineId && r.status === 'scheduled' && new Date(r.pmDate).getFullYear() === year && new Date(r.pmDate).getMonth() === month);
+                if (existingRecord) { existingRecord.pmDate = scheduledDate; } 
+                else { pmRecords.push({ id: Date.now(), parentId: machineId, pmDate: scheduledDate, technician: 'N/A', details: 'PM ตามกำหนด', cost: 0, status: 'scheduled' }); }
                 saveData(); renderAll(); closeModal('schedule-pm-modal'); showToast('กำหนดวัน PM เรียบร้อยแล้ว');
+            });
+
+            document.getElementById('pm-plan-form').addEventListener('submit', e => {
+                e.preventDefault();
+                const machineId = parseInt(document.getElementById('current-machine-id').value);
+                const selectedMonths = Array.from(document.querySelectorAll('#pm-months-checkboxes .pm-month-cb:checked')).map(cb => parseInt(cb.value));
+                const planIndex = pmPlan.findIndex(p => p.machineId === machineId);
+                if (planIndex > -1) pmPlan[planIndex].months = selectedMonths; else pmPlan.push({ machineId: machineId, months: selectedMonths });
+                saveData();
+                renderAll();
+                closeModal('pm-plan-modal');
+                showToast('ปรับปรุงแผน PM เรียบร้อยแล้ว');
             });
 
             document.getElementById('machine-form').addEventListener('submit', e => {
                 e.preventDefault();
                 const id = parseInt(document.getElementById('machine-id').value);
                 const machineData = { name: document.getElementById('machine-name').value, location: document.getElementById('machine-location').value, brand: document.getElementById('machine-brand').value, model: document.getElementById('machine-model').value, serial: document.getElementById('machine-serial').value, size: document.getElementById('machine-size').value, purchaseDate: document.getElementById('machine-purchase-date').value, contractValue: parseFloat(document.getElementById('machine-contract-value').value) || 0 };
-                const selectedMonths = Array.from(document.querySelectorAll('.pm-month-cb:checked')).map(cb => parseInt(cb.value));
                 if (id) {
                     const index = machines.findIndex(m => m.id === id);
                     machines[index] = { ...machines[index], ...machineData };
-                    const planIndex = pmPlan.findIndex(p => p.machineId === id);
-                    if (planIndex > -1) pmPlan[planIndex].months = selectedMonths; else pmPlan.push({ machineId: id, months: selectedMonths });
                     showMachineDetailPage(id);
                 }
                 renderAll(); closeModal('machine-modal'); showToast('บันทึกข้อมูลเครื่องจักรเรียบร้อยแล้ว');
             });
-
-            document.getElementById('pm-record-form').addEventListener('submit', e => {
+            
+            document.getElementById('sub-unit-form').addEventListener('submit', e => {
                 e.preventDefault();
-                const currentMachineId = parseInt(document.getElementById('current-machine-id').value);
-                const pmDateValue = document.getElementById('pm-date').value;
-                const pmDate = new Date(pmDateValue);
-                const existingScheduled = pmRecords.find(r => r.machineId === currentMachineId && r.status === 'scheduled' && new Date(r.pmDate).getFullYear() === pmDate.getFullYear() && new Date(r.pmDate).getMonth() === pmDate.getMonth());
-                if (existingScheduled) {
-                    Object.assign(existingScheduled, { pmDate: pmDateValue, technician: document.getElementById('pm-technician').value, details: document.getElementById('pm-details').value, cost: parseFloat(document.getElementById('pm-cost').value) || 0, status: 'completed' });
-                } else {
-                    pmRecords.push({ id: Date.now(), machineId: currentMachineId, pmDate: pmDateValue, technician: document.getElementById('pm-technician').value, details: document.getElementById('pm-details').value, cost: parseFloat(document.getElementById('pm-cost').value) || 0, status: 'completed' });
+                const parentId = parseInt(document.getElementById('current-machine-id').value);
+                const machine = getMachineById(parentId);
+                const unitId = parseInt(document.getElementById('sub-unit-id').value);
+                const unitData = { parentId, name: document.getElementById('sub-unit-name').value, location: document.getElementById('sub-unit-location').value, brand: document.getElementById('sub-unit-brand').value, model: document.getElementById('sub-unit-model').value, serial: document.getElementById('sub-unit-serial').value, size: document.getElementById('sub-unit-size').value };
+                const unitArray = subUnits[machine.type];
+                if(unitArray) {
+                    if (unitId) { // Update
+                        const index = unitArray.findIndex(u => u.id === unitId);
+                        if (index > -1) unitArray[index] = { ...unitArray[index], ...unitData };
+                    } else { // Add new
+                        unitArray.push({ id: Date.now(), ...unitData });
+                    }
+                    saveData();
+                    renderSubUnits(parentId, machine.type);
+                    closeModal('sub-unit-modal');
+                    showToast('บันทึก Unit สำเร็จ');
                 }
-                saveData(); renderPmRecords(currentMachineId); renderOverallDashboard(); closeModal('pm-record-modal'); showToast('บันทึก PM สำเร็จ');
             });
             
-            const createRecordHandler = (formId, stateArray, renderFn, tableId) => {
+            const createRecordHandler = (formId, stateArray) => {
                  document.getElementById(formId).addEventListener('submit', e => {
                     e.preventDefault();
-                    const currentMachineId = parseInt(document.getElementById('current-machine-id').value);
-                    const record = { id: Date.now(), machineId: currentMachineId };
+                    const machineId = parseInt(document.getElementById('current-machine-id').value);
+                    const subUnitId = parseInt(document.getElementById('current-sub-unit-id').value);
+                    const parentId = subUnitId || machineId;
+                    const record = { id: Date.now(), parentId };
                     
-                    if (formId === 'sub-machine-form') Object.assign(record, { mainMachineId: currentMachineId, name: document.getElementById('sub-machine-name').value, details: document.getElementById('sub-machine-details').value });
+                    if (formId === 'pm-record-form') {
+                         const pmDateValue = document.getElementById('pm-date').value; const pmDate = new Date(pmDateValue);
+                         const existingScheduled = pmRecords.find(r => r.parentId === parentId && r.status === 'scheduled' && new Date(r.pmDate).getFullYear() === pmDate.getFullYear() && new Date(r.pmDate).getMonth() === pmDate.getMonth());
+                         const data = { pmDate: pmDateValue, technician: document.getElementById('pm-technician').value, cost: parseFloat(document.getElementById('pm-cost').value) || 0, details: document.getElementById('pm-details').value, summary: document.getElementById('pm-summary').value, needsParts: document.getElementById('pm-needs-parts').checked, partsNeeded: document.getElementById('pm-parts-needed').value, status: 'completed' };
+                         if(existingScheduled) { Object.assign(existingScheduled, data); } else { stateArray.push({ ...record, ...data}); }
+                    } else if (formId === 'sub-machine-form') Object.assign(record, { name: document.getElementById('sub-machine-name').value, details: document.getElementById('sub-machine-details').value });
                     else if (formId === 'breakdown-record-form') Object.assign(record, { breakdownDate: document.getElementById('breakdown-date').value, cost: parseFloat(document.getElementById('breakdown-cost').value) || 0, problem: document.getElementById('breakdown-problem').value, action: document.getElementById('breakdown-action').value });
                     else if (formId === 'parts-record-form') Object.assign(record, { date: document.getElementById('parts-date').value, name: document.getElementById('parts-name').value, cost: parseFloat(document.getElementById('parts-cost').value) || 0 });
                     else if (formId === 'no-load-test-form') Object.assign(record, { date: document.getElementById('no-load-date').value, time: document.getElementById('no-load-time').value, temp: document.getElementById('no-load-temp').value, fuel: document.getElementById('no-load-fuel').value });
                     else if (formId === 'on-load-run-form') Object.assign(record, { date: document.getElementById('on-load-date').value, time: document.getElementById('on-load-time').value, fuelUsed: document.getElementById('on-load-fuel-used').value, loadPercent: document.getElementById('on-load-percent').value });
                     else if (formId === 'dummy-load-test-form') Object.assign(record, { date: document.getElementById('dummy-load-date').value, result: document.getElementById('dummy-load-result').value });
                     else if (formId === 'firepump-test-run-form') Object.assign(record, { date: document.getElementById('fp-test-date').value, time: document.getElementById('fp-test-time').value, fuel: document.getElementById('fp-test-fuel').value, pressure: document.getElementById('fp-test-pressure').value });
+                    else if (formId === 'battery-plan-form') {
+                        const changeDateValue = document.getElementById('battery-change-date').value;
+                        const changeDate = new Date(changeDateValue);
+                        const expiryDate = new Date(changeDate.setFullYear(changeDate.getFullYear() + 2));
+                        Object.assign(record, { size: document.getElementById('battery-size').value, quantity: document.getElementById('battery-quantity').value, price: parseFloat(document.getElementById('battery-price').value) || 0, changeDate: changeDateValue, expiryDate: expiryDate.toISOString().split('T')[0] });
+                    } else if (formId === 'iaq-record-form') {
+                        const result = document.querySelector('input[name="iaq-result"]:checked').value;
+                        Object.assign(record, { date: document.getElementById('iaq-date').value, result: result, failedParams: result === 'fail' ? document.getElementById('iaq-fail-reason').value : '', status: 'open' });
+                    } else if (formId === 'filter-plan-form') {
+                        Object.assign(record, { size: document.getElementById('filter-size').value, month: parseInt(document.getElementById('filter-month').value) });
+                    }
 
-                    stateArray.push(record); saveData(); 
-                    showMachineDetailPage(currentMachineId); // Re-render the whole detail page to update tables and charts
+                    if (formId !== 'pm-record-form') stateArray.push(record);
+                    
+                    saveData();
+                    if(subUnitId) { showSubUnitDetailPage(subUnitId); } else { showMachineDetailPage(machineId); }
                     renderOverallDashboard(); closeModal(formId.replace('form', 'modal')); showToast('บันทึกข้อมูลสำเร็จ');
                 });
             };
-
-            createRecordHandler('sub-machine-form', subMachines, renderSubMachines);
-            createRecordHandler('breakdown-record-form', breakdownRecords, renderBreakdownRecords);
-            createRecordHandler('parts-record-form', partsRecords, renderPartsRecords);
-            createRecordHandler('no-load-test-form', noLoadTests, renderNoLoadTests);
-            createRecordHandler('on-load-run-form', onLoadRuns, renderOnLoadRuns);
-            createRecordHandler('dummy-load-test-form', dummyLoadTests, renderDummyLoadTests);
-            createRecordHandler('firepump-test-run-form', firepumpTestRuns, renderFirepumpTestRuns);
-
-            document.getElementById('machine-detail').addEventListener('click', e => {
+            
+            createRecordHandler('pm-record-form', pmRecords);
+            createRecordHandler('sub-machine-form', subMachines);
+            createRecordHandler('breakdown-record-form', breakdownRecords);
+            createRecordHandler('parts-record-form', partsRecords);
+            createRecordHandler('no-load-test-form', noLoadTests);
+            createRecordHandler('on-load-run-form', onLoadRuns);
+            createRecordHandler('dummy-load-test-form', dummyLoadTests);
+            createRecordHandler('firepump-test-run-form', firepumpTestRuns);
+            createRecordHandler('battery-plan-form', batteryPlans);
+            createRecordHandler('iaq-record-form', iaqRecords);
+            createRecordHandler('filter-plan-form', filterPlans);
+            
+            document.body.addEventListener('click', e => {
                 const btn = e.target.closest('.delete-btn');
                 if (btn && btn.dataset.id && btn.dataset.type) {
                      const { id, type } = btn.dataset;
-                     const currentMachineId = parseInt(document.getElementById('current-machine-id').value);
+                     const machineId = parseInt(document.getElementById('current-machine-id').value);
+                     const subUnitId = parseInt(document.getElementById('current-sub-unit-id').value);
                      
                      const dataMap = {
-                         subMachine: { array: subMachines }, pmRecord: { array: pmRecords }, breakdownRecord: { array: breakdownRecords }, partsRecord: { array: partsRecords },
-                         noLoadTest: { array: noLoadTests }, onLoadRun: { array: onLoadRuns }, dummyLoadTest: { array: dummyLoadTests }, firepumpTestRun: { array: firepumpTestRuns }
+                         subUnit: { array: subUnits[getMachineById(machineId)?.type] }, batteryPlan: { array: batteryPlans }, iaqRecord: { array: iaqRecords}, filterPlan: { array: filterPlans}, subMachine: { array: subMachines }, pmRecord: { array: pmRecords },
+                         breakdownRecord: { array: breakdownRecords }, partsRecord: { array: partsRecords }, noLoadTest: { array: noLoadTests },
+                         onLoadRun: { array: onLoadRuns }, dummyLoadTest: { array: dummyLoadTests }, firepumpTestRun: { array: firepumpTestRuns }
                      };
+
+                     const finalType = type.replace('Unit', '');
                      
-                     if (dataMap[type] && confirm('ยืนยันการลบ?')) {
-                         const { array } = dataMap[type];
+                     if (dataMap[finalType] && confirm('ยืนยันการลบ?')) {
+                         const { array } = dataMap[finalType];
                          const index = array.findIndex(item => item.id === parseInt(id));
                          if (index > -1) {
                              array.splice(index, 1);
                              saveData();
-                             showMachineDetailPage(currentMachineId); // Re-render everything on the page
-                             renderOverallDashboard();
-                             showToast('ลบข้อมูลแล้ว');
+                             if(subUnitId && !type.endsWith('Unit')) { showSubUnitDetailPage(subUnitId); } else { showMachineDetailPage(machineId); }
+                             renderOverallDashboard(); showToast('ลบข้อมูลแล้ว');
                          }
                      }
                 }
             });
             
+            document.getElementById('pm-record-modal').addEventListener('change', e => {
+                if (e.target.id === 'pm-needs-parts') {
+                    document.getElementById('pm-parts-needed-container').classList.toggle('hidden', !e.target.checked);
+                }
+            });
+            document.getElementById('iaq-record-modal').addEventListener('change', e => {
+                if(e.target.name === 'iaq-result') {
+                    document.getElementById('iaq-fail-reason-container').classList.toggle('hidden', e.target.value !== 'fail');
+                }
+            });
+            
+            const convertToCSV = (arr) => {
+                if(!arr || arr.length === 0) return '';
+                const array = [Object.keys(arr[0])].concat(arr);
+                return array.map(it => {
+                    return Object.values(it).toString();
+                }).join('\n');
+            };
+            const downloadCSV = (csvStr, filename) => {
+                const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                if (link.download !== undefined) {
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", filename);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            };
+
+            document.getElementById('export-machine-select').addEventListener('change', (e) => {
+                const value = e.target.value;
+                const btnContainer = document.getElementById('export-buttons-container');
+                btnContainer.innerHTML = '';
+                if (!value) return;
+
+                const [type, idStr] = value.split('-');
+                const id = parseInt(idStr);
+                
+                const allRecordTypes = {
+                    pm: { data: pmRecords, name: 'ประวัติ PM' },
+                    breakdown: { data: breakdownRecords, name: 'ประวัติ Breakdown' },
+                    parts: { data: partsRecords, name: 'ประวัติเปลี่ยนอะไหล่' },
+                    sub_machines: { data: subMachines, name: 'อุปกรณ์ย่อย' },
+                    no_load_tests: { data: noLoadTests, name: 'No Load Tests' },
+                    on_load_runs: { data: onLoadRuns, name: 'On Load Runs' },
+                    dummy_load_tests: { data: dummyLoadTests, name: 'Dummy Load Tests' },
+                    firepump_tests: { data: firepumpTestRuns, name: 'Fire Pump Tests' },
+                    battery_plans: { data: batteryPlans, name: 'แผนเปลี่ยนแบตเตอรี่' },
+                    iaq: { data: iaqRecords, name: 'ผลตรวจ IAQ' },
+                    filter_plans: { data: filterPlans, name: 'แผนเปลี่ยน Filter' }
+                };
+                
+                let parentName;
+                if(type === 'machine') parentName = getMachineById(id).name;
+                else if (type === 'unit') parentName = getSubUnitById(id).name;
+
+                for (const key in allRecordTypes) {
+                    const records = allRecordTypes[key].data.filter(r => r.parentId === id);
+                    if (records.length > 0) {
+                        const btn = document.createElement('button');
+                        btn.className = 'bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600';
+                        btn.textContent = `Download ${allRecordTypes[key].name}`;
+                        btn.onclick = () => {
+                            const csv = convertToCSV(records);
+                            downloadCSV(csv, `${parentName}_${key}.csv`);
+                        };
+                        btnContainer.appendChild(btn);
+                    }
+                }
+            });
+
             showPage('overall-dashboard'); renderAll();
         });
     </script>
+    
+    <template id="standalone-machine-template">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Main History Column -->
+            <div class="flex flex-col space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">ประวัติการทำ PM</h3><button class="add-record-btn bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-modal="pm-record-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">ผู้ปฏิบัติงาน</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="pm-records-table"></tbody></table></div></div>
+                <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">ประวัติ Breakdown</h3><button class="add-record-btn bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-modal="breakdown-record-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่เสีย</th><th class="py-2 px-4">อาการ</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="breakdown-records-table"></tbody></table></div></div>
+                <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">เครื่องจักรย่อย/อุปกรณ์</h3><button class="add-record-btn bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-modal="sub-machine-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">ชื่อ</th><th class="py-2 px-4">รายละเอียด</th><th class="py-2 px-4"></th></tr></thead><tbody id="sub-machines-table"></tbody></table></div></div>
+                 <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">บันทึกการเปลี่ยนอะไหล่</h3><button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="parts-record-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">อะไหล่</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="parts-records-table"></tbody></table></div></div>
+            </div>
+            <!-- Specifics Column -->
+            <div id="standalone-specifics-container" class="flex flex-col space-y-6">
+                <!-- Generator/Firepump/WaterFilter specifics will be injected here -->
+            </div>
+        </div>
+    </template>
+    
+    <template id="generator-specifics-template">
+         <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">No Load Test Run</h3><button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="no-load-test-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-40"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-2">วันที่/เวลา</th><th class="py-2 px-2">อุณหภูมิ</th><th class="py-2 px-2">น้ำมัน(L)</th><th class="py-2 px-2"></th></tr></thead><tbody id="no-load-tests-table"></tbody></table></div><div class="relative mt-4"><canvas id="no-load-chart"></canvas></div></div>
+         <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">On Load Run</h3><button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="on-load-run-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-40"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-2">วันที่/เวลา</th><th class="py-2 px-2">น้ำมันที่ใช้(L)</th><th class="py-2 px-2">%Load</th><th class="py-2 px-2"></th></tr></thead><tbody id="on-load-runs-table"></tbody></table></div><div class="relative mt-4"><canvas id="on-load-chart"></canvas></div></div>
+         <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">Dummy Load Test</h3><button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="dummy-load-test-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-40"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">ผล</th><th class="py-2 px-4"></th></tr></thead><tbody id="dummy-load-tests-table"></tbody></table></div></div>
+         <div class="bg-white p-6 rounded-lg shadow-sm"><div class="relative"><canvas id="parts-cost-chart"></canvas></div></div>
+    </template>
+
+    <template id="firepump-specifics-template">
+         <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">Test Run</h3><button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="firepump-test-run-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-2">วันที่/เวลา</th><th class="py-2 px-2">น้ำมัน(L)</th><th class="py-2 px-2">แรงดัน(bar)</th><th class="py-2 px-2"></th></tr></thead><tbody id="firepump-test-runs-table"></tbody></table></div></div>
+    </template>
+
+     <template id="water-filter-specifics-template">
+        <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">แผนการเปลี่ยน Filter</h3><button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="filter-plan-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-2">ขนาด Filter</th><th class="py-2 px-2">เดือนที่เปลี่ยน</th><th class="py-2 px-2"></th></tr></thead><tbody id="filter-plans-table"></tbody></table></div></div>
+    </template>
+    
+    <template id="system-machine-template">
+        <div class="bg-white p-6 rounded-lg shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">รายการ Units</h3>
+                <button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="sub-unit-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม Unit</button>
+            </div>
+            <div class="overflow-y-auto max-h-96">
+                <table class="w-full text-left">
+                    <thead><tr class="border-b"><th class="py-2 px-4">ชื่อ/รหัส Unit</th><th class="py-2 px-4">ตำแหน่งติดตั้ง</th><th class="py-2 px-4"></th></tr></thead>
+                    <tbody id="sub-units-table"></tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+    
+    <template id="sub-unit-main-history-template">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="flex flex-col space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">ประวัติการทำ PM</h3><button class="add-record-btn bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-modal="pm-record-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">ผู้ปฏิบัติงาน</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="pm-records-table"></tbody></table></div></div>
+                <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">ประวัติ Breakdown</h3><button class="add-record-btn bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-modal="breakdown-record-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่เสีย</th><th class="py-2 px-4">อาการ</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="breakdown-records-table"></tbody></table></div></div>
+                <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">เครื่องจักรย่อย/อุปกรณ์</h3><button class="add-record-btn bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600" data-modal="sub-machine-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">ชื่อ</th><th class="py-2 px-4">รายละเอียด</th><th class="py-2 px-4"></th></tr></thead><tbody id="sub-machines-table"></tbody></table></div></div>
+            </div>
+            <div id="sub-unit-specifics-container" class="flex flex-col space-y-6">
+                 <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">บันทึกการเปลี่ยนอะไหล่</h3><button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="parts-record-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-4">วันที่</th><th class="py-2 px-4">อะไหล่</th><th class="py-2 px-4">ค่าใช้จ่าย</th><th class="py-2 px-4"></th></tr></thead><tbody id="parts-records-table"></tbody></table></div></div>
+                 <!-- Specifics for UPS or OR HVAC will be injected here -->
+            </div>
+        </div>
+    </template>
+    
+    <template id="ups-specifics-template">
+        <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">แผนการเปลี่ยนแบตเตอรี่</h3><button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="battery-plan-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-2">ขนาด</th><th class="py-2 px-2">จำนวน</th><th class="py-2 px-2">ราคา</th><th class="py-2 px-2">วันที่เปลี่ยน</th><th class="py-2 px-2">ครบกำหนด</th><th class="py-2 px-2"></th></tr></thead><tbody id="battery-plans-table"></tbody></table></div></div>
+    </template>
+
+    <template id="or-hvac-specifics-template">
+        <div class="bg-white p-6 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold">ผลการตรวจวัด IAQ</h3><button class="add-record-btn bg-sky-500 text-white px-3 py-1 rounded-md text-sm hover:bg-sky-600" data-modal="iaq-record-modal"><i class="fas fa-plus mr-1"></i>เพิ่ม</button></div><div class="overflow-y-auto max-h-60"><table class="w-full text-left"><thead><tr class="border-b"><th class="py-2 px-2">วันที่</th><th class="py-2 px-2">ผล</th><th class="py-2 px-2">Parameter ที่ไม่ผ่าน</th><th class="py-2 px-2"></th></tr></thead><tbody id="iaq-records-table"></tbody></table></div></div>
+    </template>
+
 </body>
 </html>
 
